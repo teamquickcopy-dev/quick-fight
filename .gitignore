@@ -1,0 +1,8 @@
+# Godot
+client/.godot/
+*.import
+client/export_credentials.cfg
+build/
+# OS / editors
+.DS_Store
+*.swp

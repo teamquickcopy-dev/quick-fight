@@ -1,0 +1,66 @@
+{
+  "id": "jitu",
+  "name": "Jitu",
+  "archetype": "Rushdown",
+  "color": "#46b3d9",
+  "rig": "graybox",
+  "health": 950,
+  "walk": { "forward": 460, "back": 340 },
+  "dash": { "forward": { "frames": 14, "speed": 1400 }, "back": { "frames": 16, "speed": 1050 } },
+  "jump": { "squat": 3, "velocity": 2000, "gravity": 115, "forward": 520 },
+  "pushbox": { "w": 64, "h": 175 },
+  "hurtboxes": {
+    "stand": [[-30, 0, 60, 160], [-19, 160, 38, 38]],
+    "crouch": [[-34, 0, 68, 110]],
+    "air": [[-28, 20, 56, 145]]
+  },
+  "moves": {
+    "st_lp": { "category": "light", "startup": 3, "active": 2, "recovery": 6, "damage": 25, "hitstun": 13, "blockstun": 9, "pushback": 8, "box": [18, 125, 65, 20], "cancel": ["heavy"] },
+    "st_lk": { "category": "light", "startup": 4, "active": 3, "recovery": 8, "damage": 30, "hitstun": 14, "blockstun": 9, "pushback": 10, "box": [15, 55, 80, 22], "cancel": ["heavy"] },
+    "st_hp": { "category": "heavy", "startup": 6, "active": 3, "recovery": 14, "damage": 70, "hitstun": 19, "blockstun": 13, "pushback": 16, "box": [22, 110, 90, 30], "hurt_extend": [[20, 110, 55, 28]], "cancel": ["special", "super", "ultra"] },
+    "st_hk": { "category": "heavy", "startup": 8, "active": 3, "recovery": 16, "damage": 80, "hitstun": 19, "blockstun": 13, "pushback": 18, "box": [18, 85, 105, 30], "hurt_extend": [[18, 85, 65, 28]], "cancel": ["special", "super", "ultra"] },
+    "cr_lp": { "category": "light", "startup": 3, "active": 2, "recovery": 6, "damage": 20, "hitstun": 12, "blockstun": 8, "pushback": 8, "box": [18, 68, 60, 20], "cancel": ["heavy"] },
+    "cr_lk": { "category": "light", "startup": 4, "active": 2, "recovery": 8, "damage": 22, "level": "low", "hitstun": 12, "blockstun": 8, "pushback": 8, "box": [15, 0, 80, 22], "cancel": ["heavy"] },
+    "cr_hp": { "category": "heavy", "startup": 6, "active": 4, "recovery": 17, "damage": 65, "hitstun": 21, "blockstun": 13, "pushback": 12, "launch": [200, 1700], "box": [10, 105, 60, 95], "hurt_extend": [[10, 105, 45, 55]], "cancel": ["special", "super", "ultra"] },
+    "cr_hk": { "category": "heavy", "startup": 8, "active": 3, "recovery": 20, "damage": 70, "level": "low", "knockdown": true, "hitstun": 20, "blockstun": 13, "pushback": 28, "box": [15, 0, 115, 24], "hurt_extend": [[15, 0, 80, 24]] },
+    "j_lp": { "category": "light", "startup": 3, "active": 6, "recovery": 4, "damage": 30, "hitstun": 14, "blockstun": 9, "pushback": 8, "box": [10, 50, 60, 24] },
+    "j_lk": { "category": "light", "startup": 4, "active": 8, "recovery": 4, "damage": 30, "hitstun": 14, "blockstun": 9, "pushback": 8, "box": [5, 10, 70, 28] },
+    "j_hp": { "category": "heavy", "startup": 6, "active": 4, "recovery": 6, "damage": 70, "hitstun": 19, "blockstun": 13, "pushback": 12, "box": [15, 20, 80, 38] },
+    "j_hk": { "category": "heavy", "startup": 6, "active": 5, "recovery": 6, "damage": 75, "hitstun": 19, "blockstun": 13, "pushback": 12, "box": [10, -10, 90, 36] },
+    "throw": { "category": "throw", "startup": 5, "active": 2, "recovery": 20, "damage": 110, "box": [20, 40, 50, 100] },
+    "rush_order": {
+      "category": "special", "input": { "dir": "forward", "button": "hp" },
+      "startup": 9, "active": 4, "recovery": 16, "damage": 70, "hitstun": 22, "blockstun": 12, "pushback": 18, "chip": 6,
+      "box": [20, 100, 85, 45], "motion": [[0, 12, 1300]], "cancel": ["ruler_slash", "super", "ultra"]
+    },
+    "ruler_slash": {
+      "category": "special", "input": { "dir": "down", "button": "hk" },
+      "startup": 7, "active": 4, "recovery": 20, "damage": 90, "level": "low", "knockdown": true, "chip": 8,
+      "hitstun": 20, "blockstun": 14, "pushback": 30, "box": [20, 0, 135, 30], "hurt_extend": [[20, 0, 90, 30]],
+      "cancel": ["super", "ultra"]
+    },
+    "crop_mark": {
+      "category": "special", "input": { "dir": "back", "button": "hp" },
+      "startup": 3, "active": 3, "recovery": 15, "damage": 70, "hitstun": 20, "blockstun": 14, "pushback": 20, "chip": 6,
+      "box": [15, 70, 90, 90], "invuln": { "from": 0, "to": 3, "strike": true }, "cancel": ["super", "ultra"]
+    },
+    "ctrl_z": {
+      "category": "super", "meter_cost": 500, "flash": 30, "recovery": 28, "chip": 8,
+      "hitstun": 26, "blockstun": 16, "pushback": 6, "box": [15, 40, 120, 120], "motion": [[0, 24, 300]],
+      "invuln": { "from": 0, "to": 5, "strike": true, "throw": true },
+      "hits": [
+        { "start": 5, "active": 2, "damage": 50, "repeat": 3, "every": 5 },
+        { "start": 26, "active": 3, "damage": 140, "knockdown": true, "pushback": 40 }
+      ]
+    },
+    "deadline_rush": {
+      "category": "ultra", "meter_cost": 1500, "flash": 45, "recovery": 34, "chip": 5,
+      "hitstun": 24, "blockstun": 14, "pushback": 2, "box": [10, 20, 125, 150], "motion": [[0, 40, 260]],
+      "invuln": { "from": 0, "to": 6, "strike": true, "throw": true },
+      "hits": [
+        { "start": 6, "active": 2, "damage": 30, "repeat": 10, "every": 3 },
+        { "start": 42, "active": 4, "damage": 180, "launch": [600, 2100], "box": [0, 0, 220, 240] }
+      ]
+    }
+  }
+}
