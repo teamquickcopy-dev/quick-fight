@@ -41,6 +41,10 @@ async function timeToTitle(browser, p) {
   await page.waitForFunction(() => window.qfEngineReadyAt !== undefined || window.qfGameTitleAt !== undefined,
     null, { timeout: 120000 });
   const readyMs = await page.evaluate(() => window.qfEngineReadyAt ?? window.qfGameTitleAt);
+  // A slim engine built without a text server renders no text at all; fail loudly.
+  await page.waitForFunction(() => window.qfTextServer !== undefined, null, { timeout: 30000 });
+  const textServer = await page.evaluate(() => window.qfTextServer);
+  if (textServer === 'Dummy') throw new Error('engine has no text server: no text will render');
   return { ctx, page, ms, readyMs, bytes, titleBytes, errors };
 }
 

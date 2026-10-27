@@ -48,8 +48,11 @@ func _ready() -> void:
 ## Lets the load-time test read when the game's own title is up. On the web the page's HTML
 ## title (web/shell.html) is shown first and sets window.qfTitleShownAt itself.
 func _mark_title_shown() -> void:
+	var text_server := TextServerManager.get_primary_interface().get_name()
+	if text_server == "Dummy":
+		push_error("No text server in this build: text won't render (see tools/web_template_profile.py)")
 	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.qfGameTitleAt = performance.now();", true)
+		JavaScriptBridge.eval("window.qfGameTitleAt = performance.now(); window.qfTextServer = '%s';" % text_server, true)
 	print("title screen shown after %d ms" % Time.get_ticks_msec())
 
 

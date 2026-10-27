@@ -15,6 +15,9 @@ disable_3d = "yes"
 disable_advanced_gui = "yes"
 minizip = "no"
 openxr = "no"
+# Small Latin-script text server instead of text_server_adv (ICU + HarfBuzz). It is off by
+# default, so it must be switched on or no text renders at all.
+module_text_server_fb_enabled = "yes"
 
 module_astcenc_enabled = "no"
 module_basis_universal_enabled = "no"
