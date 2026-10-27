@@ -8,7 +8,7 @@
   "walk": { "forward": 360, "back": 280 },
   "dash": { "forward": { "frames": 16, "speed": 1100 }, "back": { "frames": 18, "speed": 950 } },
   "jump": { "squat": 4, "velocity": 2000, "gravity": 105, "forward": 450 },
-  "pushbox": { "w": 70, "h": 180 },
+  "pushbox": { "w": 80, "h": 180 },
   "hurtboxes": {
     "stand": [[-32, 0, 64, 165], [-20, 165, 40, 40]],
     "crouch": [[-36, 0, 72, 115]],
@@ -37,7 +37,7 @@
     "heat_press_palm": {
       "category": "special", "input": { "dir": "down", "button": "hp" },
       "startup": 4, "active": 8, "recovery": 24, "damage": 100, "hitstun": 24, "blockstun": 16, "pushback": 20, "chip": 8,
-      "launch": [220, 1800], "box": [10, 110, 65, 130], "invuln": { "from": 0, "to": 7, "strike": true },
+      "launch": [220, 1800], "box": [10, 110, 80, 130], "invuln": { "from": 0, "to": 7, "strike": true },
       "cancel": ["super", "ultra"]
     },
     "ink_roll": {

@@ -8,7 +8,7 @@
   "walk": { "forward": 460, "back": 340 },
   "dash": { "forward": { "frames": 14, "speed": 1400 }, "back": { "frames": 16, "speed": 1050 } },
   "jump": { "squat": 3, "velocity": 2000, "gravity": 115, "forward": 520 },
-  "pushbox": { "w": 64, "h": 175 },
+  "pushbox": { "w": 74, "h": 175 },
   "hurtboxes": {
     "stand": [[-30, 0, 60, 160], [-19, 160, 38, 38]],
     "crouch": [[-34, 0, 68, 110]],

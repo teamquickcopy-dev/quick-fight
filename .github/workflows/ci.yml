@@ -1,0 +1,36 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot ${{ env.GODOT_VERSION }} + web templates
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          unzip -q godot.zip && sudo mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          curl -sSL -o tpl.tpz https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q tpl.tpz 'templates/web*' 'templates/version.txt' -d tpl
+          mv tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+      - name: Import project
+        run: cd client && timeout 300 godot --headless --editor --quit || true
+      - name: Sim tests
+        run: tests/run.sh
+      - name: UI smoke test
+        run: |
+          cd client && timeout 120 godot --headless --path . -s ../tests/smoke_ui.gd > smoke.log 2>&1; cat smoke.log
+          grep -q "SMOKE OK" smoke.log && ! grep -q "SCRIPT ERROR" smoke.log
+      - name: Web build
+        run: mkdir -p build/web && cd client && godot --headless --export-release "Web" ../build/web/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
