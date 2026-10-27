@@ -1,5 +1,5 @@
 """Static server for the web build that serves brotli/gzip like Caddy will in production.
-Usage: python3 tests/web/serve.py build/web 8060"""
+Usage: python3 tests/web/serve.py build/web 8060 [fast]   ("fast" = gzip only, starts quickly)"""
 import gzip, http.server, sys, os
 
 try:
@@ -8,6 +8,8 @@ except ImportError:
     brotli = None
 
 ROOT, PORT = sys.argv[1], int(sys.argv[2])
+if len(sys.argv) > 3 and sys.argv[3] == "fast":
+    brotli = None
 CACHE = {}
 TYPES = {".wasm": "application/wasm", ".js": "application/javascript", ".pck": "application/octet-stream",
          ".html": "text/html", ".png": "image/png"}

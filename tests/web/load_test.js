@@ -1,4 +1,6 @@
-// Week 1 gate check: time from opening the link to the title screen, under emulated network/CPU.
+// Week 1 gate check, under emulated network/CPU: time from opening the link to the title screen
+// (window.qfTitleShownAt, set by web/shell.html) and to the engine being ready to play
+// (window.qfEngineReadyAt).
 // Then plays into a CPU fight and screenshots it. Usage: node tests/web/load_test.js http://127.0.0.1:8060 out_dir
 // Note: emulation in desktop Chromium (software WebGL), not a real phone. Real-device testing is still required.
 const { chromium } = require('playwright');
@@ -33,24 +35,32 @@ async function timeToTitle(browser, p) {
   await page.goto(url, { waitUntil: 'commit' });
   await page.waitForFunction(() => window.qfTitleShownAt !== undefined, null, { timeout: 120000 });
   const ms = await page.evaluate(() => window.qfTitleShownAt);
-  return { ctx, page, ms, bytes, errors };
+  const titleBytes = bytes;
+  if (p.shot) await page.screenshot({ path: p.shot });   // the title while the engine still loads
+  // Older builds (stock shell) have no separate engine-ready mark: the title appears when the engine is ready.
+  await page.waitForFunction(() => window.qfEngineReadyAt !== undefined || window.qfGameTitleAt !== undefined,
+    null, { timeout: 120000 });
+  const readyMs = await page.evaluate(() => window.qfEngineReadyAt ?? window.qfGameTitleAt);
+  return { ctx, page, ms, readyMs, bytes, titleBytes, errors };
 }
 
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const results = [];
+  PROFILES[1].shot = `${out}/0-title-while-loading.png`;
   for (const p of PROFILES) {
     const r = await timeToTitle(browser, p);
-    results.push({ profile: p.name, ms: Math.round(r.ms), mb: +(r.bytes / 1e6).toFixed(2), errors: r.errors });
-    console.log(`${p.name}: title screen after ${(r.ms / 1000).toFixed(2)} s, ${(r.bytes / 1e6).toFixed(2)} MB transferred`);
+    results.push({ profile: p.name, title_ms: Math.round(r.ms), playable_ms: Math.round(r.readyMs),
+      mb: +(r.bytes / 1e6).toFixed(2), errors: r.errors });
+    console.log(`${p.name}: title after ${(r.ms / 1000).toFixed(2)} s, playable after ${(r.readyMs / 1000).toFixed(2)} s, ` +
+      `${(r.bytes / 1e6).toFixed(2)} MB transferred`);
     if (p.cpu === 1) {
       const page = r.page;
       await page.waitForTimeout(800);
       await page.screenshot({ path: `${out}/1-title.png` });
-      await page.mouse.click(640, 360);       // focus the canvas
       const press = async (k, wait = 250) => { await page.keyboard.press(k); await page.waitForTimeout(wait); };
       await page.waitForTimeout(300);
-      await press('KeyJ');                     // title -> mode
+      await press('KeyJ', 600);                // title -> mode
       await page.screenshot({ path: `${out}/2-mode.png` });
       await press('KeyJ');                     // Versus CPU -> level
       await press('KeyJ');                     // Senior Designer -> select

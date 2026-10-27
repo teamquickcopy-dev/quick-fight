@@ -45,11 +45,17 @@ func _ready() -> void:
 	_mark_title_shown()
 
 
-## Week 1 gate: lets the load-time test read when the title screen first appears.
+## Lets the load-time test read when the game's own title is up. On the web the page's HTML
+## title (web/shell.html) is shown first and sets window.qfTitleShownAt itself.
 func _mark_title_shown() -> void:
 	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.qfTitleShownAt = performance.now();", true)
+		JavaScriptBridge.eval("window.qfGameTitleAt = performance.now();", true)
 	print("title screen shown after %d ms" % Time.get_ticks_msec())
+
+
+## The web page's title screen already asked for "Press any button": skip ours once it's pressed.
+func _web_start_pressed() -> bool:
+	return OS.has_feature("web") and JavaScriptBridge.eval("window.qfStartPressed === true", true) == true
 
 
 func _process(_delta: float) -> void:
@@ -60,7 +66,7 @@ func _process(_delta: float) -> void:
 		f.state_frame += 1
 	match screen:
 		Screen.TITLE:
-			if Controls.menu("accept") or _any_button():
+			if Controls.menu("accept") or _any_button() or _web_start_pressed():
 				_go(Screen.MODE)
 		Screen.MODE:
 			_list_nav(MODES.size())
