@@ -4,7 +4,7 @@ A 4-fighter browser fighting game: three print-shop designers battle for the big
 The design doc is [docs/quick-fight-design.md](docs/quick-fight-design.md).
 
 **Status:** Week 1–4 gray-box prototype. Arghya and Jitu are placeholder box rigs. There is one flat stage, plus Versus (vs CPU or 2P local) and Training modes.
-Week 1 engine test results are in [docs/week1-engine-test.md](docs/week1-engine-test.md).
+Week 1 engine test results are in [docs/week1-engine-test.md](docs/week1-engine-test.md). The title appears in 0.1 s and the game is playable after 7.0 s on emulated 4G, using the slim engine (`tools/`).
 
 ![Fight](docs/screenshots/5-fight.png)
 
