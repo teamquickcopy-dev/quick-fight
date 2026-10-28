@@ -19,7 +19,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -64,7 +64,8 @@ def main(config_path, preview=False):
         print("wrote", os.path.relpath(path, ROOT))
         return
     caps = sheet.cap_mask(rgb, alpha)
-    filled = fill_caps(rgb, alpha, ndimage.binary_dilation(caps, iterations=2) & (alpha > 0))
+    # Caps have a light rim around them in the source art: widen the area that gets filled.
+    filled = fill_caps(rgb, alpha, ndimage.binary_dilation(caps, iterations=6) & (alpha > 0))
     e = cfg["export_scale"]
     parts = cfg["parts"]
 
@@ -101,6 +102,14 @@ def main(config_path, preview=False):
             box[cy0:cy1, cx0:cx1] = True
             mask &= box
             x0, y0, x1, y1 = max(x0, cx0), max(y0, cy0), min(x1, cx1), min(y1, cy1)
+        if "keep" in p:
+            # Polygon outline to keep, e.g. the jacket body without the sleeves drawn onto it.
+            poly = Image.new("L", (rgb.shape[1], rgb.shape[0]), 0)
+            ImageDraw.Draw(poly).polygon([tuple(v) for v in p["keep"]], fill=255)
+            mask &= np.asarray(poly) > 0
+            xs = [v[0] for v in p["keep"]]
+            ys = [v[1] for v in p["keep"]]
+            x0, y0, x1, y1 = max(x0, min(xs)), max(y0, min(ys)), min(x1, max(xs)), min(y1, max(ys))
         x0, y0 = max(x0 - PAD, 0), max(y0 - PAD, 0)
         x1, y1 = min(x1 + PAD, rgb.shape[1]), min(y1 + PAD, rgb.shape[0])
         piece_a = np.where(mask, alpha, 0)[y0:y1, x0:x1].astype(np.uint8)

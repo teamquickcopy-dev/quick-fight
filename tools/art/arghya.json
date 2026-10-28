@@ -6,7 +6,8 @@
   "export_scale": 0.3,
   "parts": {
     "head":          { "comp": 1,  "pivot": [395, 261], "tip": [385, 20] },
-    "torso":         { "comp": 2,  "pivot": [759, 431], "tip": [770, 32], "crop": [500, 0, 945, 452] },
+    "torso":         { "comp": 2,  "pivot": [759, 431], "tip": [770, 32],
+                       "keep": [[598, 40], [700, 0], [860, 0], [902, 45], [905, 220], [950, 420], [940, 452], [545, 452], [560, 300], [585, 190]] },
     "pelvis":        { "comp": 10, "pivot": [766, 466], "tip": [766, 300], "crop": [560, 440, 975, 590] },
     "arm_upper_F":   { "comp": 3,  "pivot": [1041, 88], "tip": [1189, 229] },
     "arm_lower_F":   { "comp": 5,  "pivot": [122, 278], "tip": [265, 425] },
@@ -21,8 +22,8 @@
   },
   "anchors": {
     "_doc": "Joints on other parts, in parts.webp pixels: shoulders on the torso, hips on the pelvis.",
-    "shoulder_F": [985, 112],
-    "shoulder_B": [540, 128],
+    "shoulder_F": [878, 88],
+    "shoulder_B": [615, 92],
     "hip_F": [870, 560],
     "hip_B": [660, 560]
   },
