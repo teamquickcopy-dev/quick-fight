@@ -6,9 +6,37 @@ on:
 
 env:
   GODOT_VERSION: 4.4.1
+  EM_VERSION: 3.1.64
 
 jobs:
+  # Slim Godot web engine (tools/web_template_profile.py). Slow to build, so it's cached and
+  # only rebuilt when the build settings change.
+  web-template:
+    runs-on: ubuntu-latest
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: key
+        run: echo "key=web-template-${GODOT_VERSION}-${EM_VERSION}-${{ hashFiles('tools/web_template_profile.py', 'tools/build_web_template.sh') }}" >> "$GITHUB_OUTPUT"
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: build/templates
+          key: ${{ steps.key.outputs.key }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EM_VERSION }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        name: Build slim web template
+        run: |
+          pip install scons
+          git clone --depth 1 -b ${GODOT_VERSION}-stable https://github.com/godotengine/godot.git /tmp/godot
+          GODOT_SRC=/tmp/godot tools/build_web_template.sh
+
   test-and-build:
+    needs: web-template
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +48,13 @@ jobs:
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           unzip -q tpl.tpz 'templates/web*' 'templates/version.txt' -d tpl
           mv tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+      - uses: actions/cache/restore@v4
+        with:
+          path: build/templates
+          key: ${{ needs.web-template.outputs.key }}
+          fail-on-cache-miss: true
+      - name: Use the slim web template
+        run: cp build/templates/web_nothreads_release.zip ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
       - name: Import project
         run: cd client && timeout 300 godot --headless --editor --quit || true
       - name: Sim tests
@@ -29,7 +64,9 @@ jobs:
           cd client && timeout 120 godot --headless --path . -s ../tests/smoke_ui.gd > smoke.log 2>&1; cat smoke.log
           grep -q "SMOKE OK" smoke.log && ! grep -q "SCRIPT ERROR" smoke.log
       - name: Web build
-        run: mkdir -p build/web && cd client && godot --headless --export-release "Web" ../build/web/index.html
+        run: |
+          mkdir -p build/web && cd client && godot --headless --export-release "Web" ../build/web/index.html
+          ls -la ../build/web
       - uses: actions/upload-artifact@v4
         with:
           name: web-build

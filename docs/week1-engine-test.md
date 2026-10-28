@@ -2,45 +2,47 @@
 
 **Gate:** under 5 seconds from opening the link to the title screen on a mid-range Android phone over 4G.
 
-**Result so far: the stock Godot 4.4 web export fails the gate on 4G.** The game itself is tiny. The engine download is not.
+**Result: the title screen gate is met (0.1 s). Full playability takes 7.0 s on typical 4G.** Both numbers come from emulation, not yet a real phone.
 
-## What gets downloaded
+## What changed
 
-| File | Raw | Brotli (what Caddy serves) |
+1. **Instant HTML title** (`client/web/shell.html`): the title screen is plain HTML/CSS with no downloads. It appears straight away and shows load progress while the engine downloads behind it. When the engine is ready it says "Press any button". That press also unlocks browser audio, and the game then skips its own title and opens the mode menu.
+2. **Slim Godot web engine** (`tools/web_template_profile.py`, `tools/build_web_template.sh`): Godot 4.4.1 is compiled with 3D removed, plus physics, navigation, the advanced GUI, the large text engine (ICU/HarfBuzz) and about 40 other unused modules. It uses link-time optimization. CI builds it once and caches it.
+   - It keeps GDScript, fonts, PNG/WebP/SVG images, Ogg/Vorbis + MP3 audio, and WebRTC + WebSocket for online play.
+   - It uses the small fallback text engine, which covers Latin-script text only. Non-Latin text (Bengali, for example) would need the large text engine back, which adds about 1 MB.
+
+## Download size (brotli, what Caddy serves)
+
+| File | Stock Godot | Slim |
 | --- | --- | --- |
-| `index.wasm` (Godot engine, stock template) | 43.7 MB | **6.41 MB** |
-| `index.pck` (all game code + fighter data) | 0.10 MB | 0.09 MB |
-| `index.js` (loader) | 0.32 MB | 0.07 MB |
-| **Total** | | **6.59 MB** |
+| `index.wasm` (engine) | 6.41 MB | **3.77 MB** |
+| `index.pck` (game code + data) | 0.09 MB | 0.09 MB |
+| `index.js` (loader) | 0.07 MB | 0.07 MB |
+| **Total** | 6.59 MB | **3.93 MB** |
 
-## Time to title screen
+## Times
 
-These figures are emulated in desktop Chromium (Playwright, Chrome DevTools network and CPU throttling, cold cache), not measured on a real phone. Reproduce with `tests/web/load_test.js`.
+These are emulated in desktop Chromium (Playwright, Chrome DevTools network and CPU throttling, cold cache). Reproduce with `tests/web/load_test.js`.
 
-| Profile | Time to title |
-| --- | --- |
-| Desktop, no throttling | 1.3 s |
-| 4G typical (10 Mbps, 70 ms RTT) + CPU 4x slower | **9.6 s** |
-| 4G weak (4 Mbps, 100 ms RTT) + CPU 4x slower | **17.1 s** |
+| Profile | Stock: title = playable | Slim + HTML title: title | Slim + HTML title: playable |
+| --- | --- | --- | --- |
+| Desktop, no throttling | 1.3 s | **0.02 s** | 1.2 s |
+| 4G typical (10 Mbps, 70 ms RTT) + CPU 4x slower | 9.6 s | **0.11 s** | 7.0 s |
+| 4G weak (4 Mbps, 100 ms RTT) + CPU 4x slower | 17.1 s | **0.14 s** | 11.9 s |
 
-Nearly all of that time is downloading and compiling the 6.4 MB engine.
+The player sees the title right away, and the playable time is when "Press any button" appears. On typical 4G, a player who reads the title and taps through the menus barely waits.
 
-## Ways to hit 5 seconds (still Godot)
+## Not done / still open
 
-1. **Custom slim web template:** compile Godot with 3D, physics, navigation and unused modules disabled (`disable_3d=yes`, `optimize=size`, custom build profile). Godot's documentation reports this kind of build at roughly half the stock size, so about 3 MB brotli, which is about 3–4 s on typical 4G. This takes about an hour of setup in CI, then it's automatic. It is the recommended next step.
-2. **Instant HTML title:** show a lightweight HTML/CSS title screen ("Press to play") immediately, while the engine downloads in the background. The player sees the title in well under a second, and by the time they pick a mode the engine is ready. This doesn't make the download smaller, but it is what the player actually feels.
-3. **Return visits:** with the installable app (service worker cache, Beta milestone), the second visit loads from disk in about 1 s.
+- [ ] **Real phone:** measure on a mid-range Android phone over real 4G (load, 60fps, memory under 400 MB). The fps in this container (about 16) is software WebGL with no GPU, so it says nothing about phones. The game speed stays correct regardless, because the sim runs a fixed 60 ticks/s.
+- [ ] **Playable under 5 s on typical 4G** would need about 1.5 MB less. Options, in order of effort:
+  - a feature build profile that strips unused engine classes (about 0.3–0.6 MB);
+  - streaming compilation with the engine served as `application/wasm` (Caddy does this; my test server may not have);
+  - a JavaScript + WebGL engine (about 0.2 MB, but a rewrite).
 
-The best answer is probably 1 + 2 together. If the slim template still can't get under 5 s on typical 4G, that's the case for the plain JavaScript + WebGL alternative (about 0.2 MB). That would mean rewriting the engine code that exists now (the `engine/` folder is about 1,300 lines of GDScript).
+  Given an instant title, I don't think the rewrite is worth it.
+- [ ] **Return visits:** with the installable app (service worker, Beta milestone), the engine loads from disk in about 1 s.
 
-## Other numbers
+## Recommendation
 
-- **Sim cost:** about 20 µs per tick headless (budget for rollback: under 1 ms, so replaying 8 frames costs under 0.2 ms).
-- **Fps in this test:** 18 fps. The container has no GPU, so Chromium used software WebGL (SwiftShader). This number is **not** a phone measurement. The game speed stays correct anyway, because the sim runs a fixed 60 ticks/s and catches up independently of the frame rate. The 60fps gate needs a real mid-range Android phone.
-- **Memory:** not measured yet. Godot release builds don't report it, so it needs Chrome DevTools on the phone.
-
-## Still to do for this gate
-
-- [ ] Build the slim template and re-measure.
-- [ ] Try the HTML instant title.
-- [ ] Measure on a real mid-range Android phone (load time, fps, memory).
+Stay on Godot, with the slim engine and the instant title.
