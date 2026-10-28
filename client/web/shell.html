@@ -56,6 +56,14 @@ body { color: #fff; background: #14151b; overflow: hidden; touch-action: none;
 // Time-to-title for the Week 1 gate: the first frame the title is on screen.
 requestAnimationFrame(() => { window.qfTitleShownAt = performance.now(); });
 		</script>
+		<!-- Deploy-time settings (window.QF_SERVER). Missing locally, which is fine. -->
+		<script src="config.js" onerror="void 0"></script>
+		<script>
+// Free hosting puts the online server to sleep when idle: wake it now, while the engine loads.
+if (window.QF_SERVER) {
+	fetch(window.QF_SERVER.replace(/^ws/, 'http').replace(/\/ws$/, '/healthz'), { mode: 'no-cors' }).catch(() => {});
+}
+		</script>
 
 		<script src="$GODOT_URL"></script>
 		<script>

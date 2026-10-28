@@ -55,9 +55,13 @@ func _ready() -> void:
 				"loss": added_loss = float(kv[1])
 
 
-## Same origin as the page in production (Caddy proxies /ws); a local dev server otherwise.
+## Order: window.QF_SERVER (from config.js, written at deploy time; see docs/hosting.md), then
+## the page's own origin (Caddy proxies /ws), then a local dev server.
 static func _default_server_url() -> String:
 	if OS.has_feature("web"):
+		var configured := str(JavaScriptBridge.eval("window.QF_SERVER || ''", true))
+		if configured != "":
+			return configured
 		var proto: String = str(JavaScriptBridge.eval("location.protocol", true))
 		var host: String = str(JavaScriptBridge.eval("location.host", true))
 		if not host.begins_with("127.0.0.1") and not host.begins_with("localhost"):

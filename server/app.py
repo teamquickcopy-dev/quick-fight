@@ -122,15 +122,20 @@ class Lobby:
 
 
 def ice_servers(user_id: str) -> list[dict]:
-    """STUN/TURN for the browser. TURN uses coturn's shared-secret REST credentials
-    (use-auth-secret): the username is "<expiry>:<id>", the password HMAC-SHA1(secret, username)."""
+    """STUN/TURN for the browser. TURN uses either fixed credentials (TURN_USERNAME/TURN_CREDENTIAL,
+    for hosted services) or coturn's shared-secret REST credentials (TURN_SECRET, use-auth-secret):
+    the username is "<expiry>:<id>", the password HMAC-SHA1(secret, username)."""
     servers: list[dict] = []
     stun = [u for u in os.environ.get("STUN_URLS", "").split(",") if u]
     if stun:
         servers.append({"urls": stun})
     turn = [u for u in os.environ.get("TURN_URLS", "").split(",") if u]
     secret = os.environ.get("TURN_SECRET", "")
-    if turn and secret:
+    # Hosted TURN services (e.g. Metered) hand out a fixed username/password instead of a secret.
+    if turn and os.environ.get("TURN_USERNAME") and os.environ.get("TURN_CREDENTIAL"):
+        servers.append({"urls": turn, "username": os.environ["TURN_USERNAME"],
+                        "credential": os.environ["TURN_CREDENTIAL"]})
+    elif turn and secret:
         username = f"{int(time.time()) + TURN_CREDENTIAL_TTL}:{user_id}"
         digest = hmac.new(secret.encode(), username.encode(), hashlib.sha1).digest()
         servers.append({"urls": turn, "username": username, "credential": base64.b64encode(digest).decode()})
