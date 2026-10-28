@@ -23,14 +23,17 @@ python3 ../tests/web/serve.py ../build/web 8060   # open http://127.0.0.1:8060
 
 ## Play online locally
 
-Online play needs the browser build, because the desktop editor needs a WebRTC plugin first.
+Online play works in the Godot editor (Windows, Mac, Linux), using the bundled WebRTC plugin in `client/addons/webrtc_native`. It also works in the browser build. Desktop and browser players can play each other.
 
 ```sh
-cd server && pip install -r requirements.txt && uvicorn app:app --port 8000   # signaling server
-python3 tests/web/serve.py build/web 8060                                       # the web build
+cd server && pip install -r requirements.txt && uvicorn app:app --port 8000   # signaling server (needs Python)
 ```
 
-Open http://127.0.0.1:8060 in two browser windows: Online → pick a fighter → one creates a room, the other joins with the code.
+- **Two editor windows:** run the game twice from Godot (F5, then Debug → Run Multiple Instances, or launch Godot twice).
+- **Browser:** `python3 tests/web/serve.py build/web 8060`, then open http://127.0.0.1:8060.
+
+In each game: Online → pick a fighter → one creates a room, the other joins with the 4-letter code.
+The desktop game uses `ws://127.0.0.1:8000/ws` by default. Set the `QF_SERVER` environment variable to use another server.
 Add `?lag=75&loss=0.01` to the URL to simulate a bad connection (75 ms each way, 1% loss). To deploy for real, see [infra/README.md](infra/README.md).
 
 ## Controls
@@ -64,6 +67,7 @@ tests/run.sh throw      # only tests whose name contains "throw"
 - `tests/smoke_online.gd`: two online fight screens linked by a fake 150 ms connection.
 - `server/test_app.py`: signaling server (rooms, quick match, relaying, TURN credentials). Run with `cd server && python -m pytest`.
 - `tests/web/load_test.js`: web build time-to-title under emulated 4G, plus screenshots.
+- `tests/online_desktop.sh`: two desktop Godot processes play online through the server with real WebRTC (the plugin).
 - `tests/web/online_test.js`: two real browsers play each other through the server over WebRTC with added lag and loss, and check for desyncs and stalls.
 
 ## Layout
@@ -79,7 +83,8 @@ client/            Godot project
   web/             HTML page with the instant title screen
 server/            FastAPI signaling / matchmaking
 infra/             docker-compose, Caddy, coturn
-tools/             slim Godot web engine build
+tools/             slim Godot web engine build, WebRTC plugin version
+client/addons/webrtc_native/   official Godot WebRTC plugin (desktop only; vendored by .github/workflows/vendor-webrtc.yml)
 docs/              design doc, Week 1 results, screenshots
 tests/             sim tests, UI smoke test, web load test
 ```

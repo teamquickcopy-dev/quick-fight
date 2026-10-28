@@ -1,0 +1,49 @@
+# Downloads the official Godot WebRTC plugin (godotengine/webrtc-native) into
+# client/addons/webrtc_native/ and commits it, so online play works in the desktop editor and
+# desktop exports. (Browser builds don't need it: browsers have WebRTC built in.)
+# Runs when tools/webrtc-native.version changes. Keeps desktop libraries only (Linux x86_64,
+# Windows x86_64, macOS universal) to limit repo size.
+name: Vendor WebRTC plugin
+on:
+  push:
+    paths:
+      - tools/webrtc-native.version
+      - .github/workflows/vendor-webrtc.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(cat tools/webrtc-native.version)
+          mkdir -p /tmp/w && cd /tmp/w
+          gh release download "$VERSION" -R godotengine/webrtc-native -p 'godot-extension-webrtc_native.zip'
+          unzip -q godot-extension-webrtc_native.zip -d unpacked
+      - name: Install into client/addons/webrtc_native (desktop only)
+        run: |
+          SRC=/tmp/w/unpacked/addons/webrtc_native
+          DEST=client/addons/webrtc_native
+          rm -rf "$DEST" && mkdir -p "$DEST/lib"
+          cp "$SRC"/webrtc_native.gdextension "$SRC"/LICENSE.* "$DEST"/
+          [ -f "$SRC/webrtc_native.tres" ] && cp "$SRC/webrtc_native.tres" "$DEST"/ || true
+          cd "$SRC/lib"
+          cp -r *linux.template_*.x86_64.so *windows.template_*.x86_64.dll *macos.template_*.universal.* "$GITHUB_WORKSPACE/$DEST/lib/"
+          cd "$GITHUB_WORKSPACE"
+          cp tools/webrtc-native.version "$DEST/VERSION"
+          echo "::notice title=installed::$(find $DEST | tr '\n' ' ') size $(du -sh $DEST | cut -f1)"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add client/addons/webrtc_native
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "Vendor Godot WebRTC plugin $(cat tools/webrtc-native.version) (desktop platforms)"
+          git push
