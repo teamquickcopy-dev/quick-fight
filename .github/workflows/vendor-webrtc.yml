@@ -1,12 +1,13 @@
-# Downloads the official Godot WebRTC plugin (godotengine/webrtc-native) into client/webrtc/
-# and commits it, so online play works in the desktop editor and desktop exports.
-# (The browser build doesn't need it: browsers have WebRTC built in.)
-# Runs when client/webrtc/VERSION changes; keeps desktop platforms only to limit repo size.
+# Downloads the official Godot WebRTC plugin (godotengine/webrtc-native) into
+# client/addons/webrtc_native/ and commits it, so online play works in the desktop editor and
+# desktop exports. (Browser builds don't need it: browsers have WebRTC built in.)
+# Runs when tools/webrtc-native.version changes. Keeps desktop libraries only (Linux x86_64,
+# Windows x86_64, macOS universal) to limit repo size.
 name: Vendor WebRTC plugin
 on:
   push:
     paths:
-      - client/webrtc/VERSION
+      - tools/webrtc-native.version
       - .github/workflows/vendor-webrtc.yml
   workflow_dispatch:
 
@@ -22,36 +23,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(cat client/webrtc/VERSION)
+          VERSION=$(cat tools/webrtc-native.version)
           mkdir -p /tmp/w && cd /tmp/w
-          gh release view "$VERSION" -R godotengine/webrtc-native --json assets --jq '.assets[] | "\(.name) \(.size)"'
-          gh release download "$VERSION" -R godotengine/webrtc-native -p '*.zip'
-          ls -la
-          for z in *.zip; do unzip -q -o "$z" -d unpacked; done
-          # Annotations are readable through the API even where raw logs aren't.
-          echo "::notice title=assets::$(ls | tr '\n' ' ')"
-          echo "::notice title=layout::$(find unpacked -maxdepth 4 | head -60 | tr '\n' ' ')"
-      - name: Install into client/webrtc (desktop only)
+          gh release download "$VERSION" -R godotengine/webrtc-native -p 'godot-extension-webrtc_native.zip'
+          unzip -q godot-extension-webrtc_native.zip -d unpacked
+      - name: Install into client/addons/webrtc_native (desktop only)
         run: |
-          SRC=$(dirname "$(find /tmp/w/unpacked -name 'webrtc.gdextension' | head -1)")
-          echo "plugin folder: $SRC"
-          VERSION=$(cat client/webrtc/VERSION)
-          rm -rf client/webrtc && mkdir -p client/webrtc
-          cp "$SRC/webrtc.gdextension" client/webrtc/
-          [ -f "$SRC/LICENSE.md" ] && cp "$SRC"/LICENSE* client/webrtc/ || true
-          find "$SRC" -maxdepth 3 -iname '*license*' -exec cp {} client/webrtc/ \; || true
-          mkdir -p client/webrtc/lib
-          # Keep Linux x86_64, Windows x86_64, macOS (universal) builds only.
-          find "$SRC/lib" -maxdepth 1 \( -name '*linux*x86_64*' -o -name '*windows*x86_64*' -o -name '*macos*' \) \
-            -exec cp -r {} client/webrtc/lib/ \;
-          echo "$VERSION" > client/webrtc/VERSION
-          ls -laR client/webrtc | head -40
-          du -sh client/webrtc
+          SRC=/tmp/w/unpacked/addons/webrtc_native
+          DEST=client/addons/webrtc_native
+          rm -rf "$DEST" && mkdir -p "$DEST/lib"
+          cp "$SRC"/webrtc_native.gdextension "$SRC"/LICENSE.* "$DEST"/
+          [ -f "$SRC/webrtc_native.tres" ] && cp "$SRC/webrtc_native.tres" "$DEST"/ || true
+          cd "$SRC/lib"
+          cp -r *linux.template_*.x86_64.so *windows.template_*.x86_64.dll *macos.template_*.universal.* "$GITHUB_WORKSPACE/$DEST/lib/"
+          cd "$GITHUB_WORKSPACE"
+          cp tools/webrtc-native.version "$DEST/VERSION"
+          echo "::notice title=installed::$(find $DEST | tr '\n' ' ') size $(du -sh $DEST | cut -f1)"
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add client/webrtc
+          git add client/addons/webrtc_native
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "Vendor Godot WebRTC plugin $(cat client/webrtc/VERSION) (desktop platforms)"
+          git commit -m "Vendor Godot WebRTC plugin $(cat tools/webrtc-native.version) (desktop platforms)"
           git push
