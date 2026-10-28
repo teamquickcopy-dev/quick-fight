@@ -15,7 +15,7 @@ const MatchSim := preload("res://engine/match_sim.gd")
 
 enum { PKT_INPUT = 1, PKT_PING = 2, PKT_PONG = 3, PKT_CHECKSUM = 4 }
 
-const MAX_ROLLBACK := 8          # frames we may run ahead of the opponent's last confirmed input
+const MAX_ROLLBACK := 10         # frames we may run ahead of the opponent's last confirmed input
 const MAX_INPUTS_PER_PACKET := 64
 const CHECKSUM_INTERVAL := 30
 const PING_INTERVAL_MS := 500
@@ -64,10 +64,12 @@ func _init(match_sim: MatchSim, local_player: int, delay: int, clock_fn: Callabl
 	_last_remote = input_delay - 1
 
 
-## Input delay for a measured round trip: hide as much as possible with rollback, the rest with delay.
+## Input delay for a measured round trip: hide most of the trip with rollback, the rest with delay.
+## Leaving ~2 frames to rollback keeps corrections small and leaves headroom for jitter and loss
+## (browser tests at 150-200 ms stalled about once a second with one frame less).
 static func delay_for_rtt(rtt: float) -> int:
 	var one_way_frames := rtt / 2.0 / (1000.0 / 60.0)
-	return clampi(int(ceil(one_way_frames)) - 3, 1, 4)
+	return clampi(int(ceil(one_way_frames)) - 2, 1, 5)
 
 
 ## One display tick. Returns the presentation events of every frame simulated this tick

@@ -81,7 +81,7 @@ func _report(name: String, r: Dictionary) -> void:
 
 func test_delay_for_rtt() -> void:
 	var D = Rollback
-	t.eq([D.delay_for_rtt(0), D.delay_for_rtt(50), D.delay_for_rtt(150), D.delay_for_rtt(300)], [1, 1, 2, 4], "input delay by ping")
+	t.eq([D.delay_for_rtt(0), D.delay_for_rtt(50), D.delay_for_rtt(150), D.delay_for_rtt(300)], [1, 1, 3, 5], "input delay by ping")
 
 
 func test_lan_no_desync() -> void:

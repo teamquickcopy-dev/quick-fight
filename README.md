@@ -3,7 +3,8 @@
 A 4-fighter browser fighting game: three print-shop designers battle for the big client job, then face their boss.
 The design doc is [docs/quick-fight-design.md](docs/quick-fight-design.md).
 
-**Status:** Week 1–4 gray-box prototype. Arghya and Jitu are placeholder box rigs. There is one flat stage, plus Versus (vs CPU or 2P local) and Training modes.
+**Status:** Weeks 1–6. Gray-box prototype plus online play. Arghya and Jitu are placeholder box rigs, and there is one flat stage. Modes: Versus (vs CPU or 2P local), Online (quick match or room code, rollback netcode), Training.
+Online results are in [docs/online-prototype.md](docs/online-prototype.md).
 Week 1 engine test results are in [docs/week1-engine-test.md](docs/week1-engine-test.md). The title appears in 0.1 s and the game is playable after 7.0 s on emulated 4G, using the slim engine (`tools/`).
 
 ![Fight](docs/screenshots/5-fight.png)
@@ -19,6 +20,18 @@ Requirements: [Godot 4.4.1](https://godotengine.org/download) (standard build, n
 cd client && godot --headless --export-release "Web" ../build/web/index.html
 python3 ../tests/web/serve.py ../build/web 8060   # open http://127.0.0.1:8060
 ```
+
+## Play online locally
+
+Online play needs the browser build, because the desktop editor needs a WebRTC plugin first.
+
+```sh
+cd server && pip install -r requirements.txt && uvicorn app:app --port 8000   # signaling server
+python3 tests/web/serve.py build/web 8060                                       # the web build
+```
+
+Open http://127.0.0.1:8060 in two browser windows: Online → pick a fighter → one creates a room, the other joins with the code.
+Add `?lag=75&loss=0.01` to the URL to simulate a bad connection (75 ms each way, 1% loss). To deploy for real, see [infra/README.md](infra/README.md).
 
 ## Controls
 
@@ -47,7 +60,11 @@ tests/run.sh throw      # only tests whose name contains "throw"
 - `tests/sim/test_determinism.gd`: the same 10,000-frame input recording played twice must match every frame; save/restore rollback; sim speed.
 - `tests/sim/test_cpu.gd`: the CPU levels finish matches, Art Director beats Intern, and seeded CPU fights replay identically.
 - `tests/smoke_ui.gd`: boots the real UI and runs each mode headless.
+- `tests/sim/test_rollback.gd`: two rollback sessions over a simulated network (LAN, 150 ms, 20% loss, 400 ms). Every confirmed frame must match.
+- `tests/smoke_online.gd`: two online fight screens linked by a fake 150 ms connection.
+- `server/test_app.py`: signaling server (rooms, quick match, relaying, TURN credentials). Run with `cd server && python -m pytest`.
 - `tests/web/load_test.js`: web build time-to-title under emulated 4G, plus screenshots.
+- `tests/web/online_test.js`: two real browsers play each other through the server over WebRTC with added lag and loss, and check for desyncs and stalls.
 
 ## Layout
 
@@ -58,9 +75,11 @@ client/            Godot project
   stages/          graybox (print_floor, design_studio later)
   ui/              menus, fight screen, HUD, controls
   fx/              shared effects library
-  net/             rollback + WebRTC (weeks 5–6)
-server/            FastAPI signaling / matchmaking (weeks 5–6)
-infra/             docker-compose, Caddy, coturn (weeks 5–6)
+  net/             rollback session, WebRTC + signaling connection
+  web/             HTML page with the instant title screen
+server/            FastAPI signaling / matchmaking
+infra/             docker-compose, Caddy, coturn
+tools/             slim Godot web engine build
 docs/              design doc, Week 1 results, screenshots
 tests/             sim tests, UI smoke test, web load test
 ```

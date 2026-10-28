@@ -14,13 +14,15 @@ const Cpu := preload("res://engine/cpu.gd")
 const BoxRig := preload("res://fighters/_graybox/box_rig.gd")
 const Effects := preload("res://fx/effects.gd")
 const Stage := preload("res://stages/graybox/stage.gd")
+const Rollback := preload("res://net/rollback.gd")
 
 const TICK_USEC := 1000000 / R.TICKS_PER_SECOND
 const MAX_CATCHUP := 4
 const GROUND_Y := Stage.GROUND_Y
 const DUMMY_MODES := ["Stand", "Crouch", "Jump", "Block stand", "Block crouch", "Block all", "CPU", "Player 2"]
 
-## mode: "cpu" | "versus" | "training"; p1/p2: FighterData; level: CPU level
+## mode: "cpu" | "versus" | "training" | "online"; p1/p2: FighterData; level: CPU level;
+## online only: online (net/online.gd), local (0/1 = which side we play), delay (input delay)
 var cfg: Dictionary
 var sim: MatchSim
 var cpu: Cpu
@@ -62,6 +64,13 @@ var _fps_frames := 0
 var _fps_time := 0
 var fps := 0
 
+# Online
+var session: Rollback
+var online_dead := false
+var _seen_events := {}           # dedupes events replayed by rollback: key -> frame
+## Tests can supply player 1's input instead of the keyboard: () -> int mask.
+var local_input := Callable()
+
 
 func setup(config: Dictionary) -> void:
 	cfg = config
@@ -77,6 +86,9 @@ func setup(config: Dictionary) -> void:
 	if cfg.mode == "cpu":
 		cpu = Cpu.new(1, cfg.get("level", Cpu.Level.SENIOR), seed)
 	training_cpu = Cpu.new(1, Cpu.Level.SENIOR, seed)
+	if cfg.mode == "online":
+		session = Rollback.new(sim, cfg.local, cfg.delay, func() -> int: return Time.get_ticks_msec())
+		cfg.online.set_input_handler(session.receive)
 	fx.clear()
 	_last = Time.get_ticks_usec()
 	_acc = 0
@@ -95,15 +107,18 @@ func _process(_delta: float) -> void:
 		_fps_frames = 0
 		_fps_time = 0
 		if OS.has_feature("web"):
-			# Read by the browser performance test (tests/web/load_test.js).
-			JavaScriptBridge.eval("window.qfStats = {fps: %d, tick_us: %d, mem_mb: %d, ticks: %d};" % [
-				fps, tick_us, int(OS.get_static_memory_usage() / 1048576.0), ticks], true)
+			# Read by the browser tests (tests/web/load_test.js, tests/web/online_test.js).
+			JavaScriptBridge.eval("window.qfStats = %s;" % JSON.stringify(_stats()), true)
 
+	var online_mode: bool = cfg.mode == "online"
 	if menu_open:
 		_menu_input()
 	elif Input.is_action_just_pressed("pause"):
-		_open_menu("PAUSED", ["Resume", "Restart", "Character select", "Main menu"])
-	else:
+		if online_mode:
+			_open_menu("MENU", ["Resume", "Leave match"])   # the fight keeps running online
+		else:
+			_open_menu("PAUSED", ["Resume", "Restart", "Character select", "Main menu"])
+	if (not menu_open or online_mode) and not online_dead:
 		_acc = mini(_acc + elapsed, TICK_USEC * MAX_CATCHUP)
 		while _acc >= TICK_USEC:
 			_tick()
@@ -120,6 +135,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			show_boxes = not show_boxes
 		KEY_F9:
 			show_perf = not show_perf
+		KEY_F10:
+			if cfg.mode == "online":
+				# Debug: add 75 ms each way to outgoing input packets (applies to new packets).
+				cfg.online.added_lag_ms = 0 if cfg.online.added_lag_ms > 0 else 75
 	if cfg.mode != "training":
 		return
 	match event.physical_keycode:
@@ -142,7 +161,7 @@ func _reset_training() -> void:
 
 func _tick() -> void:
 	ticks += 1
-	var m0 := Controls.mask(1)
+	var m0: int = local_input.call() if local_input.is_valid() else Controls.mask(1)
 	var m1 := 0
 	match cfg.mode:
 		"cpu":
@@ -152,10 +171,18 @@ func _tick() -> void:
 		"training":
 			m1 = _dummy_input()
 	var t0 := Time.get_ticks_usec()
-	sim.step(m0, m1)
+	if cfg.mode == "online":
+		var events: Array = session.advance(0 if menu_open else m0)
+		for bytes in session.take_outgoing():
+			cfg.online.send_input(bytes)
+		for e in events:
+			if _fresh(e):
+				_on_event(e)
+	else:
+		sim.step(m0, m1)
+		for e in sim.events:
+			_on_event(e)
 	tick_us = Time.get_ticks_usec() - t0
-	for e in sim.events:
-		_on_event(e)
 	fx.tick()
 	announce_t = maxi(announce_t - 1, 0)
 	for i in 2:
@@ -164,10 +191,40 @@ func _tick() -> void:
 		var f = sim.fighters[i]
 		var ratio: float = float(f.health) / f.data.health
 		hp_trail[i] = ratio if ratio > hp_trail[i] else move_toward(hp_trail[i], ratio, 0.006 if f.state != Fighter.HITSTUN else 0.0)
-	if sim.phase == MatchSim.Phase.OVER and not menu_open:
+	if sim.phase == MatchSim.Phase.OVER and (not menu_open or menu_items[0] == "Resume"):
 		var w: int = sim.match_winner
-		_open_menu("DRAW" if w == 2 else "%s WINS" % sim.fighters[w].data.display_name.to_upper(),
-				["Rematch", "Character select", "Main menu"])
+		var items := ["Rematch", "Character select", "Main menu"]
+		if cfg.mode == "online":
+			items = ["Rematch", "Change fighter", "New opponent", "Main menu"]
+		_open_menu("DRAW" if w == 2 else "%s WINS" % sim.fighters[w].data.display_name.to_upper(), items)
+
+
+## Rollback can replay frames: show each event (spark, announcement) once per frame it happened in.
+func _fresh(e: Dictionary) -> bool:
+	var key := "%s|%d|%d" % [e.t, e.frame, e.get("p", -1)]
+	if _seen_events.has(key):
+		return false
+	_seen_events[key] = e.frame
+	if _seen_events.size() > 400:
+		for k in _seen_events.keys():
+			if _seen_events[k] < session.frame - 120:
+				_seen_events.erase(k)
+	return true
+
+
+func show_disconnected(reason: String) -> void:
+	online_dead = true
+	_open_menu(reason.to_upper(), ["New opponent", "Main menu"])
+
+
+func _stats() -> Dictionary:
+	var out := {"fps": fps, "tick_us": tick_us, "ticks": ticks, "phase": sim.phase, "frame": sim.frame,
+			"hp": [sim.fighters[0].health, sim.fighters[1].health]}
+	if session:
+		out.merge({"rtt": int(session.rtt_ms), "delay": session.input_delay, "desync": session.desync_frame,
+				"checked": session._local_checksums.size()})
+		out.merge(session.stats)
+	return out
 
 
 func _dummy_input() -> int:
@@ -233,7 +290,8 @@ func _on_event(e: Dictionary) -> void:
 		"move":
 			var mf = sim.fighters[e.p]
 			if e.p == 0:
-				var m: Dictionary = mf.cur_move()
+				# By name: online, events can arrive after a rollback moved the sim past this move.
+				var m: Dictionary = mf.data.moves[mf.data.move_index[e.move]]
 				move_info = "%s  startup %d  active %d  recovery %d" % [m.name, m.first_active, m.active if m.hits.size() <= 1 else m.hits.size(), m.recovery]
 			if e.category in ["super", "ultra"]:
 				fx.shockwave(_world(mf.x, 110 * R.FP))
@@ -311,9 +369,11 @@ func _menu_choose(item: String) -> void:
 			_last = Time.get_ticks_usec()
 		"Restart", "Rematch":
 			finished.emit("rematch")
-		"Character select":
+		"Character select", "Change fighter":
 			finished.emit("select")
-		"Main menu":
+		"New opponent":
+			finished.emit("new_opponent")
+		"Main menu", "Leave match":
 			finished.emit("menu")
 
 
@@ -417,6 +477,8 @@ func _draw_hud() -> void:
 		var name: String = f.data.display_name.to_upper()
 		if cfg.mode == "cpu" and i == 1:
 			name += "  (CPU: %s)" % Cpu.LEVEL_NAMES[cpu.level]
+		if cfg.mode == "online" and i == cfg.local:
+			name += "  (YOU)"
 		_text(Vector2(x0, y0 + 52), name, 20, colors[i].lightened(0.3), HORIZONTAL_ALIGNMENT_LEFT if left else HORIZONTAL_ALIGNMENT_RIGHT, w)
 		# Round wins
 		for r in R.ROUNDS_TO_WIN:
@@ -457,6 +519,16 @@ func _draw_hud() -> void:
 			_text(Vector2(0, 380), announce_sub, 26, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 1280)
 	if cfg.mode == "training":
 		_draw_training()
+	if session:
+		var ping_col := Color("#9fffa0") if session.rtt_ms < 120 else (Color("#ffd84a") if session.rtt_ms < 220 else Color("#ff6060"))
+		_text(Vector2(600, 96), "%d ms" % session.rtt_ms, 16, ping_col, HORIZONTAL_ALIGNMENT_CENTER, 80)
+		if session.desync_frame >= 0:
+			_text(Vector2(0, 140), "DESYNC at frame %d" % session.desync_frame, 24, Color("#ff4040"), HORIZONTAL_ALIGNMENT_CENTER, 1280)
+		if show_perf:
+			var st: Dictionary = session.stats
+			_text(Vector2(440, 160), "delay %d  rollbacks %d (max %d)  stalls %d  skips %d  lag+%d ms" % [
+				session.input_delay, st.rollbacks, st.max_rollback, st.stalls, st.skips, cfg.online.added_lag_ms],
+				16, Color("#9fffa0"), HORIZONTAL_ALIGNMENT_CENTER, 400)
 	if show_perf:
 		_text(Vector2(560, 110), "%d fps   sim %d us/tick   mem %d MB" % [fps, tick_us, int(OS.get_static_memory_usage() / 1048576.0)], 16, Color("#9fffa0"), HORIZONTAL_ALIGNMENT_CENTER, 160)
 
