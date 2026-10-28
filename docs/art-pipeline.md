@@ -22,7 +22,10 @@ Each fighter's painted art becomes a **cutout (puppet) rig**: body parts pinned 
 2. Run `python3 tools/art/build_fighter.py tools/art/<id>.json --preview`, copying `tools/art/arghya.json` as the starting config. The preview writes `client/fighters/<id>/parts_preview.png` with every piece numbered.
 3. In the config, set which piece number is which part (`comp`), plus each part's `pivot` (the joint it hangs from) and `tip` (the next joint), in sheet pixels.
 4. Run `python3 tools/art/build_fighter.py tools/art/<id>.json`. It writes WebP parts, `rig.json` and the UI art into `client/fighters/<id>/art/`.
-5. Set `"rig": "cutout"` in the fighter's `fighter.json`. The `test_cutout_rigs_load` test checks that the art loads.
+5. Check the result without starting the game: `python3 tools/art/preview_rig.py <id> out.png --bones`. It draws idle, punch, kick, overhead, crouch and hit poses with the skeleton overlaid (green bones, red joints), using the same math as the game. Adjust pivots and anchors until the parts sit on their joints.
+   - If a piece has other parts painted onto it (Arghya's torso has sleeves attached), give it a `keep` polygon that outlines only the part you want.
+   - Put the shoulder anchors on the jacket's shoulder seams.
+6. Set `"rig": "cutout"` in the fighter's `fighter.json`. The `test_cutout_rigs_load` test checks that the art loads.
 
 ## Why the files look the way they do
 

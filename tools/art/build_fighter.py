@@ -19,7 +19,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -64,14 +64,15 @@ def main(config_path, preview=False):
         print("wrote", os.path.relpath(path, ROOT))
         return
     caps = sheet.cap_mask(rgb, alpha)
-    filled = fill_caps(rgb, alpha, ndimage.binary_dilation(caps, iterations=2) & (alpha > 0))
+    # Caps have a light rim around them in the source art: widen the area that gets filled.
+    filled = fill_caps(rgb, alpha, ndimage.binary_dilation(caps, iterations=6) & (alpha > 0))
     e = cfg["export_scale"]
     parts = cfg["parts"]
 
     # Joint-to-joint lengths (sheet px), with child pivots moved INSET along their bone.
     def inset_pivot(p):
         (px, py), (tx, ty) = p["pivot"], p["tip"]
-        k = 0.0 if p is parts["torso"] or p is parts["pelvis"] else INSET
+        k = 0.0 if p is parts["torso"] or p is parts["pelvis"] or "sole" in p else INSET
         return [px + (tx - px) * k, py + (ty - py) * k]
 
     def length(p):
@@ -80,13 +81,13 @@ def main(config_path, preview=False):
 
     a = cfg["anchors"]
     pelvis_drop = a["hip_F"][1] - parts["pelvis"]["pivot"][1]
-    shin = parts["leg_lower_F"]
-    sole = math.hypot(shin["sole"][0] - shin["tip"][0], shin["sole"][1] - shin["tip"][1])
+    foot = parts["foot_F"]
+    ankle_h = foot["sole"] - foot["pivot"][1]   # ankle height above the floor (sheet px)
     total = (length(parts["head"]) + length(parts["torso"]) + pelvis_drop
-             + length(parts["leg_upper_F"]) + length(parts["leg_lower_F"]) + sole)
+             + length(parts["leg_upper_F"]) + length(parts["leg_lower_F"]) + ankle_h)
     s = cfg["target_height_px"] / total
     rig = {"id": cfg["id"], "draw_scale": round(s / e, 5), "parts": {}, "anchors": {},
-           "lengths": {}, "sole": round(sole * s, 2),
+           "lengths": {}, "ankle_h": round(ankle_h * s, 2),
            # Where the face is in the portrait (0..1), so cards can crop around it.
            "portrait_focus": cfg["portrait"].get("focus", [0.5, 0.4])}
 
@@ -101,6 +102,14 @@ def main(config_path, preview=False):
             box[cy0:cy1, cx0:cx1] = True
             mask &= box
             x0, y0, x1, y1 = max(x0, cx0), max(y0, cy0), min(x1, cx1), min(y1, cy1)
+        if "keep" in p:
+            # Polygon outline to keep, e.g. the jacket body without the sleeves drawn onto it.
+            poly = Image.new("L", (rgb.shape[1], rgb.shape[0]), 0)
+            ImageDraw.Draw(poly).polygon([tuple(v) for v in p["keep"]], fill=255)
+            mask &= np.asarray(poly) > 0
+            xs = [v[0] for v in p["keep"]]
+            ys = [v[1] for v in p["keep"]]
+            x0, y0, x1, y1 = max(x0, min(xs)), max(y0, min(ys)), min(x1, max(xs)), min(y1, max(ys))
         x0, y0 = max(x0 - PAD, 0), max(y0 - PAD, 0)
         x1, y1 = min(x1 + PAD, rgb.shape[1]), min(y1 + PAD, rgb.shape[0])
         piece_a = np.where(mask, alpha, 0)[y0:y1, x0:x1].astype(np.uint8)
