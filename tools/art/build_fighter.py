@@ -72,7 +72,7 @@ def main(config_path, preview=False):
     # Joint-to-joint lengths (sheet px), with child pivots moved INSET along their bone.
     def inset_pivot(p):
         (px, py), (tx, ty) = p["pivot"], p["tip"]
-        k = 0.0 if p is parts["torso"] or p is parts["pelvis"] else INSET
+        k = 0.0 if p is parts["torso"] or p is parts["pelvis"] or "sole" in p else INSET
         return [px + (tx - px) * k, py + (ty - py) * k]
 
     def length(p):
@@ -81,13 +81,13 @@ def main(config_path, preview=False):
 
     a = cfg["anchors"]
     pelvis_drop = a["hip_F"][1] - parts["pelvis"]["pivot"][1]
-    shin = parts["leg_lower_F"]
-    sole = math.hypot(shin["sole"][0] - shin["tip"][0], shin["sole"][1] - shin["tip"][1])
+    foot = parts["foot_F"]
+    ankle_h = foot["sole"] - foot["pivot"][1]   # ankle height above the floor (sheet px)
     total = (length(parts["head"]) + length(parts["torso"]) + pelvis_drop
-             + length(parts["leg_upper_F"]) + length(parts["leg_lower_F"]) + sole)
+             + length(parts["leg_upper_F"]) + length(parts["leg_lower_F"]) + ankle_h)
     s = cfg["target_height_px"] / total
     rig = {"id": cfg["id"], "draw_scale": round(s / e, 5), "parts": {}, "anchors": {},
-           "lengths": {}, "sole": round(sole * s, 2),
+           "lengths": {}, "ankle_h": round(ankle_h * s, 2),
            # Where the face is in the portrait (0..1), so cards can crop around it.
            "portrait_focus": cfg["portrait"].get("focus", [0.5, 0.4])}
 

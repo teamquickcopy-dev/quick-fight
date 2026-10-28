@@ -61,13 +61,15 @@ class Rig:
         self.cfg = json.load(open(os.path.join(d, "rig.json")))
         self.tex = {k: Image.open(os.path.join(d, p["texture"])).convert("RGBA") for k, p in self.cfg["parts"].items()}
 
-    def draw(self, canvas, feet, pose, bones=False, tint=None):
+    def draw(self, canvas, feet, pose, bones=False):
+        """Same steps as cutout_rig.gd draw(): FK pose, planted feet (IK), two-handed grip (IK)."""
         c = self.cfg
         L, A = c["lengths"], c["anchors"]
         p = pose
         spin = p.get("spin", 0.0)
-        legs = L["leg_upper_F"] + L["leg_lower_F"] + c["sole"]
-        hip_center = (0.0, -(legs - p.get("drop", 0.0)))
+        ank = c["ankle_h"]
+        lt, ls = L["leg_upper_F"], L["leg_lower_F"]
+        hip_center = (0.0, -(lt + ls + ank - p.get("drop", 0.0)))
         pr = math.radians(spin + p["lean"] * 0.3)
         waist = add(hip_center, rot((0, A["hip_F"][1]), pr), -1)
         tr = math.radians(p["lean"] + spin)
@@ -75,68 +77,98 @@ class Rig:
         neck = add(waist, tdir, L["torso"])
         hip_f, hip_b = add(waist, rot(A["hip_F"], pr)), add(waist, rot(A["hip_B"], pr))
         sh_f, sh_b = add(waist, rot(A["shoulder_F"], tr)), add(waist, rot(A["shoulder_B"], tr))
-        joints = []
+        bones_list = []
 
-        def part(name, at, direction):
+        def part(name, at, d, tint=1.0):
             if name not in self.tex:
                 return
             pp = c["parts"][name]
             axis = math.atan2(pp["tip"][1] - pp["pivot"][1], pp["tip"][0] - pp["pivot"][0])
-            ang = math.atan2(direction[1], direction[0]) - axis
+            ang = math.atan2(d[1], d[0]) - axis
             img = self.tex[name]
             s = c["draw_scale"] * SCALE
             img = img.resize((max(1, round(img.width * s)), max(1, round(img.height * s))), Image.LANCZOS)
             piv = (pp["pivot"][0] * s, pp["pivot"][1] * s)
-            # Rotate around the pivot: pad so the pivot is the centre, then rotate.
             w, h = img.size
             R = math.ceil(math.hypot(max(piv[0], w - piv[0]), max(piv[1], h - piv[1]))) + 2
             padded = Image.new("RGBA", (2 * R, 2 * R))
             padded.paste(img, (round(R - piv[0]), round(R - piv[1])))
             padded = padded.rotate(-math.degrees(ang), resample=Image.BICUBIC)
-            if tint:
+            if tint != 1.0:
                 r, g, b, a = padded.split()
-                padded = Image.merge("RGBA", (r.point(lambda v: v * tint), g.point(lambda v: v * tint), b.point(lambda v: v * tint), a))
-            x = feet[0] + at[0] * SCALE - R
-            y = feet[1] + at[1] * SCALE - R
-            canvas.alpha_composite(padded, (round(x), round(y)))
+                f = lambda v: int(v * tint)
+                padded = Image.merge("RGBA", (r.point(f), g.point(f), b.point(f), a))
+            canvas.alpha_composite(padded, (round(feet[0] + at[0] * SCALE - R), round(feet[1] + at[1] * SCALE - R)))
 
-        def limb(name, frm, deg, draw=True, t=None):
-            d = ddir(deg)
-            end = add(frm, d, L[name])
-            if draw:
-                part(name, frm, d) if t is None else part_t(name, frm, d, t)
-            joints.append((frm, end))
-            return end
+        def norm(v):
+            n = math.hypot(*v) or 1.0
+            return (v[0] / n, v[1] / n)
 
-        def part_t(name, at, d, t):
-            nonlocal tint
-            old, tint = tint, t
-            part(name, at, d)
-            tint = old
+        def sub(a, b):
+            return (a[0] - b[0], a[1] - b[1])
 
+        def ik(a, t, l1, l2, knee):
+            d = sub(t, a)
+            dist = min(max(math.hypot(*d), abs(l1 - l2) + 0.01), l1 + l2 - 0.01)
+            off = math.acos(max(-1.0, min(1.0, (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist))))
+            base = math.atan2(d[1], d[0])
+            j1 = add(a, (math.cos(base + off), math.sin(base + off)), l1)
+            j2 = add(a, (math.cos(base - off), math.sin(base - off)), l1)
+            if knee:
+                return j1 if j1[0] > j2[0] else j2
+            return j1 if j1[1] > j2[1] else j2
+
+        def leg(hip, td, sd, l1, l2):
+            knee = add(hip, ddir(td), l1)
+            ankle = add(knee, ddir(sd), l2)
+            if abs(spin) < 30 and ankle[1] > -ank - 26:
+                target = (ankle[0], -ank)
+                knee = ik(hip, target, l1, l2, True)
+                return knee, add(knee, norm(sub(target, knee)), l2), True
+            return knee, ankle, False
+
+        def draw_leg(side, hip, lg, tint):
+            knee, ankle, planted = lg
+            sd = norm(sub(ankle, knee))
+            part("foot_" + side, ankle, (1, 0) if planted else rot(sd, -math.pi / 2), tint)
+            part("leg_lower_" + side, knee, sd, tint)
+            part("leg_upper_" + side, hip, norm(sub(knee, hip)), tint)
+            bones_list.extend([(hip, knee), (knee, ankle)])
+
+        leg_f = leg(hip_f, p["ft"] + spin, p["fs"] + spin, lt, ls)
+        leg_b = leg(hip_b, p["bt"] + spin, p["bs"] + spin, L["leg_upper_B"], L["leg_lower_B"])
+        f_el = add(sh_f, ddir(p["fu"] + spin), L["arm_upper_F"])
+        fist = add(f_el, ddir(p["fl"] + spin), L["arm_lower_F"])
+        tool_dir = ddir(p["fl"] + spin + p.get("to", 100.0))
+        grip = "tool" in self.tex and p.get("grip", 0.0) >= 0.5
+        if grip:
+            target = add(fist, tool_dir, -15.0)
+            b_el = ik(sh_b, target, L["arm_upper_B"], L["arm_lower_B"], False)
+            b_wr = add(b_el, norm(sub(target, b_el)), L["arm_lower_B"])
+        else:
+            b_el = add(sh_b, ddir(p["bu"] + spin), L["arm_upper_B"])
+            b_wr = add(b_el, ddir(p["bl"] + spin), L["arm_lower_B"])
+        bf = norm(sub(b_wr, b_el))
         back = 0.72
-        b_el = limb("arm_upper_B", sh_b, p["bu"] + spin, False)
-        b_wr = limb("arm_lower_B", b_el, p["bl"] + spin, True, back)
-        part_t("hand_B", b_wr, ddir(p["bl"] + spin), back)
-        limb("arm_upper_B", sh_b, p["bu"] + spin, True, back)
-        b_kn = limb("leg_upper_B", hip_b, p["bt"] + spin, False)
-        limb("leg_lower_B", b_kn, p["bs"] + spin, True, back)
-        limb("leg_upper_B", hip_b, p["bt"] + spin, True, back)
+        if not grip:
+            part("arm_lower_B", b_el, bf, back)
+            part("hand_B", b_wr, bf, back)
+        part("arm_upper_B", sh_b, norm(sub(b_el, sh_b)), back)
+        draw_leg("B", hip_b, leg_b, back)
         part("pelvis", waist, rot((0, -1), pr))
-        f_kn = limb("leg_upper_F", hip_f, p["ft"] + spin, False)
-        limb("leg_lower_F", f_kn, p["fs"] + spin)
-        limb("leg_upper_F", hip_f, p["ft"] + spin)
+        draw_leg("F", hip_f, leg_f, 1.0)
         part("torso", waist, tdir)
+        if grip:
+            part("arm_lower_B", b_el, bf, 0.9)
+            part("hand_B", b_wr, bf, 0.9)
         part("head", neck, rot(tdir, math.radians(p["lean"] * 0.4)))
-        f_el = limb("arm_upper_F", sh_f, p["fu"] + spin, False)
-        fist = limb("arm_lower_F", f_el, p["fl"] + spin, False)
-        part("tool", fist, ddir(p["fl"] + spin + p.get("to", 100.0)))
-        limb("arm_lower_F", f_el, p["fl"] + spin)
-        limb("arm_upper_F", sh_f, p["fu"] + spin)
+        part("tool", fist, tool_dir)
+        part("arm_lower_F", f_el, norm(sub(fist, f_el)))
+        part("arm_upper_F", sh_f, norm(sub(f_el, sh_f)))
         if bones:
             dr = ImageDraw.Draw(canvas)
             sc = lambda q: (feet[0] + q[0] * SCALE, feet[1] + q[1] * SCALE)
-            for a, b in joints + [(waist, neck), (hip_center, waist)]:
+            for a, b in bones_list + [(sh_f, f_el), (f_el, fist), (sh_b, b_el), (b_el, b_wr), (waist, neck), (hip_center, waist)]:
                 dr.line([sc(a), sc(b)], fill=(0, 255, 0, 255), width=2)
                 for q in (a, b):
                     x, y = sc(q)

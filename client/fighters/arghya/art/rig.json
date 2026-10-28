@@ -1,6 +1,6 @@
 {
  "id": "arghya",
- "draw_scale": 0.5137,
+ "draw_scale": 0.514,
  "parts": {
   "head": {
    "texture": "head.webp",
@@ -112,6 +112,17 @@
     72.9
    ]
   },
+  "foot_F": {
+   "texture": "foot_F.webp",
+   "pivot": [
+    27.6,
+    6.6
+   ],
+   "tip": [
+    57.6,
+    6.6
+   ]
+  },
   "leg_upper_B": {
    "texture": "leg_upper_B.webp",
    "pivot": [
@@ -127,11 +138,22 @@
    "texture": "leg_lower_B.webp",
    "pivot": [
     25.02,
-    12.43
+    12.34
    ],
    "tip": [
     30.1,
-    70.8
+    69.3
+   ]
+  },
+  "foot_B": {
+   "texture": "foot_B.webp",
+   "pivot": [
+    30.1,
+    6.6
+   ],
+   "tip": [
+    60.1,
+    6.6
    ]
   },
   "tool": {
@@ -148,38 +170,40 @@
  },
  "anchors": {
   "shoulder_F": [
-   18.34,
-   -52.86
+   18.35,
+   -52.89
   ],
   "shoulder_B": [
-   -22.19,
-   -52.24
+   -22.2,
+   -52.27
   ],
   "hip_F": [
-   16.03,
+   16.04,
    14.49
   ],
   "hip_B": [
-   -16.34,
+   -16.35,
    14.49
   ]
  },
  "lengths": {
-  "head": 34.94,
-  "torso": 61.51,
-  "pelvis": 25.58,
-  "arm_upper_F": 29.61,
-  "arm_lower_F": 29.71,
-  "arm_upper_B": 26.34,
-  "arm_lower_B": 30.64,
-  "hand_B": 14.51,
-  "leg_upper_F": 36.08,
-  "leg_lower_F": 30.51,
-  "leg_upper_B": 43.71,
-  "leg_lower_B": 30.1,
-  "tool": 94.16
+  "head": 34.96,
+  "torso": 61.55,
+  "pelvis": 25.6,
+  "arm_upper_F": 29.63,
+  "arm_lower_F": 29.73,
+  "arm_upper_B": 26.35,
+  "arm_lower_B": 30.66,
+  "hand_B": 14.52,
+  "leg_upper_F": 36.11,
+  "leg_lower_F": 30.53,
+  "foot_F": 15.42,
+  "leg_upper_B": 43.73,
+  "leg_lower_B": 29.4,
+  "foot_B": 15.42,
+  "tool": 94.22
  },
- "sole": 22.47,
+ "ankle_h": 22.36,
  "portrait_focus": [
   0.62,
   0.45

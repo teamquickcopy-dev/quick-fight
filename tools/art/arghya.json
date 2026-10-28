@@ -1,5 +1,5 @@
 {
-  "_doc": "Cutout rig config for Arghya. Coordinates are pixels in art/source/arghya/parts.webp. Each part: comp = piece number from the detection preview (tools/art/build_fighter.py --preview), pivot = joint it hangs from, tip = the next joint. Optional crop [x0,y0,x1,y1] trims a piece, flip mirrors it.",
+  "_doc": "Cutout rig config for Arghya. Feet are cut from the shin+boot pieces at the ankle (foot tip = a point straight toward the toe, so the boot is drawn as painted, sole flat). Coordinates are pixels in art/source/arghya/parts.webp. Each part: comp = piece number from the detection preview (tools/art/build_fighter.py --preview), pivot = joint it hangs from, tip = the next joint. Optional crop [x0,y0,x1,y1] trims a piece, flip mirrors it.",
   "id": "arghya",
   "source": "art/source/arghya",
   "target_height_px": 200,
@@ -15,9 +15,11 @@
     "arm_lower_B":   { "comp": 7,  "pivot": [1262, 267], "tip": [1117, 421] },
     "hand_B":        { "comp": 13, "pivot": [1265, 418], "tip": [1290, 515] },
     "leg_upper_F":   { "comp": 11, "pivot": [995, 409], "tip": [1040, 654] },
-    "leg_lower_F":   { "comp": 17, "pivot": [1259, 630], "tip": [1275, 840], "sole": [1290, 985] },
+    "leg_lower_F":   { "comp": 17, "pivot": [1259, 630], "tip": [1275, 840], "crop": [1150, 560, 1460, 846] },
+    "foot_F":        { "comp": 17, "pivot": [1275, 840], "tip": [1375, 840], "crop": [1150, 826, 1460, 1010], "sole": 985 },
     "leg_upper_B":   { "comp": 6,  "pivot": [467, 357], "tip": [395, 650] },
-    "leg_lower_B":   { "comp": 14, "pivot": [143, 638], "tip": [125, 845], "sole": [115, 990], "flip": true },
+    "leg_lower_B":   { "comp": 14, "pivot": [143, 638], "tip": [125, 840], "crop": [0, 560, 240, 846], "flip": true },
+    "foot_B":        { "comp": 14, "pivot": [125, 840], "tip": [25, 840], "crop": [0, 826, 240, 1010], "sole": 990, "flip": true },
     "tool":          { "comp": 4,  "pivot": [1395, 760], "tip": [1400, 110] }
   },
   "anchors": {
