@@ -1,0 +1,38 @@
+# Quick Fight production stack on one VPS: Caddy (HTTPS, serves the web build with brotli),
+# the signaling server, and coturn (relay for players whose direct WebRTC connection fails).
+# Usage: copy .env.example to .env, fill it in, put the web build in ./web, then: docker compose up -d
+services:
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web:/srv/web:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [server]
+
+  server:
+    build: ../server
+    restart: unless-stopped
+    environment:
+      STUN_URLS: stun:${DOMAIN}:3478
+      TURN_URLS: turn:${DOMAIN}:3478?transport=udp,turn:${DOMAIN}:3478?transport=tcp
+      TURN_SECRET: ${TURN_SECRET}
+    expose: ["8000"]
+
+  coturn:
+    image: coturn/coturn:4.6
+    restart: unless-stopped
+    network_mode: host          # TURN needs a large UDP port range; host networking avoids mapping it
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    command: ["-c", "/etc/coturn/turnserver.conf", "--static-auth-secret=${TURN_SECRET}",
+              "--realm=${DOMAIN}", "--external-ip=${PUBLIC_IP}"]
+
+volumes:
+  caddy_data:
+  caddy_config:
