@@ -1,0 +1,41 @@
+# Render Blueprint: free hosting for Quick Fight (see docs/hosting.md).
+#  - quick-fight-server: the signaling / matchmaking server (Python, free plan; sleeps when idle)
+#  - quick-fight: the game itself, a static site published from the `web-build` branch,
+#    which GitHub Actions rebuilds on every merge to main.
+services:
+  - type: web
+    name: quick-fight-server
+    runtime: python
+    plan: free
+    rootDir: server
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --proxy-headers
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      # Public STUN lets players find their internet address so they can connect directly.
+      - key: STUN_URLS
+        value: stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302
+      # Optional relay for strict networks (e.g. Metered's free TURN): set these in the Render
+      # dashboard, not here, so the password stays out of the repo.
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+
+  - type: web
+    name: quick-fight
+    runtime: static
+    branch: web-build
+    buildCommand: echo "Built by GitHub Actions (.github/workflows/ci.yml, publish job)"
+    staticPublishPath: .
+    headers:
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /config.js
+        name: Cache-Control
+        value: no-cache

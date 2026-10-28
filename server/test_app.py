@@ -120,3 +120,12 @@ def test_no_turn_without_secret(monkeypatch):
     monkeypatch.setenv("TURN_URLS", "turn:x")
     monkeypatch.delenv("STUN_URLS", raising=False)
     assert server.ice_servers("abc") == []
+
+
+def test_fixed_turn_credentials(monkeypatch):
+    monkeypatch.delenv("STUN_URLS", raising=False)
+    monkeypatch.setenv("TURN_URLS", "turn:relay.example.com:80,turns:relay.example.com:443")
+    monkeypatch.setenv("TURN_USERNAME", "user")
+    monkeypatch.setenv("TURN_CREDENTIAL", "pass")
+    assert server.ice_servers("abc") == [{"urls": ["turn:relay.example.com:80", "turns:relay.example.com:443"],
+                                          "username": "user", "credential": "pass"}]

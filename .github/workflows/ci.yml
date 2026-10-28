@@ -89,3 +89,30 @@ jobs:
         with:
           name: web-build
           path: build/web
+
+  # On main: publish the web build to the `web-build` branch, which Render serves (render.yaml).
+  # config.js tells the game where the online server is: repository variable QF_SERVER_URL,
+  # defaulting to the Render service from render.yaml.
+  publish:
+    needs: [test-and-build, server-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: site
+      - name: Push to the web-build branch
+        env:
+          QF_SERVER_URL: ${{ vars.QF_SERVER_URL || 'wss://quick-fight-server.onrender.com/ws' }}
+        run: |
+          cd site
+          echo "window.QF_SERVER = '${QF_SERVER_URL}';" > config.js
+          git init -q -b web-build
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Web build of ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" web-build

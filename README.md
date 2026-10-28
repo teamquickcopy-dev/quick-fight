@@ -34,7 +34,7 @@ cd server && pip install -r requirements.txt && uvicorn app:app --port 8000   # 
 
 In each game: Online → pick a fighter → one creates a room, the other joins with the 4-letter code.
 The desktop game uses `ws://127.0.0.1:8000/ws` by default. Set the `QF_SERVER` environment variable to use another server.
-Add `?lag=75&loss=0.01` to the URL to simulate a bad connection (75 ms each way, 1% loss). To deploy for real, see [infra/README.md](infra/README.md).
+Add `?lag=75&loss=0.01` to the URL to simulate a bad connection (75 ms each way, 1% loss). To put it online for free, see [docs/hosting.md](docs/hosting.md) (Render). For your own server, see [infra/README.md](infra/README.md).
 
 ## Controls
 
