@@ -62,7 +62,7 @@ Caveats:
 
 - [ ] **Real two-person test:** Saint Paul ↔ Dhaka, which needs the stack deployed (see `infra/README.md`).
 - [ ] **TURN relay** is configured but not yet exercised (it needs a public server).
-- [ ] **Desktop online:** online play works in the browser build. The Godot desktop app needs the WebRTC GDExtension plugin (webrtc-native) added to the project.
+- [x] **Desktop online:** the official WebRTC plugin (webrtc-native 1.2.2, desktop libraries only, 26 MB) is in `client/addons/webrtc_native`. In tests, desktop vs desktop and desktop vs browser both played with 0 desyncs.
 - [ ] **Touch controls** are planned for the Beta milestone.
 - [ ] **Ranked ladder / Postgres** isn't part of this milestone.
 - [ ] **Possible tuning after real-device tests:**

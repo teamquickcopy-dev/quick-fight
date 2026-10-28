@@ -77,6 +77,10 @@ jobs:
         run: |
           cd client && timeout 180 godot --headless --path . -s ../tests/smoke_online.gd > online.log 2>&1; cat online.log
           grep -q "ONLINE SMOKE OK" online.log && ! grep -q "SCRIPT ERROR" online.log
+      - name: Desktop online test (two Godot processes, real WebRTC)
+        run: |
+          pip install -r server/requirements.txt
+          tests/online_desktop.sh 15
       - name: Web build
         run: |
           mkdir -p build/web && cd client && godot --headless --export-release "Web" ../build/web/index.html
