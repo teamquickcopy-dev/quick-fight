@@ -28,7 +28,9 @@ jobs:
           gh release download "$VERSION" -R godotengine/webrtc-native -p '*.zip'
           ls -la
           for z in *.zip; do unzip -q -o "$z" -d unpacked; done
-          find unpacked -maxdepth 4 | head -50
+          # Annotations are readable through the API even where raw logs aren't.
+          echo "::notice title=assets::$(ls | tr '\n' ' ')"
+          echo "::notice title=layout::$(find unpacked -maxdepth 4 | head -60 | tr '\n' ' ')"
       - name: Install into client/webrtc (desktop only)
         run: |
           SRC=$(dirname "$(find /tmp/w/unpacked -name 'webrtc.gdextension' | head -1)")
