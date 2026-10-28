@@ -1,0 +1,35 @@
+{
+  "_doc": "Cutout rig config for Arghya. Coordinates are pixels in art/source/arghya/parts.webp. Each part: comp = piece number from the detection preview (tools/art/build_fighter.py --preview), pivot = joint it hangs from, tip = the next joint. Optional crop [x0,y0,x1,y1] trims a piece, flip mirrors it.",
+  "id": "arghya",
+  "source": "art/source/arghya",
+  "target_height_px": 200,
+  "export_scale": 0.3,
+  "parts": {
+    "head":          { "comp": 1,  "pivot": [395, 261], "tip": [385, 20] },
+    "torso":         { "comp": 2,  "pivot": [759, 431], "tip": [770, 32], "crop": [500, 0, 945, 452] },
+    "pelvis":        { "comp": 10, "pivot": [766, 466], "tip": [766, 300], "crop": [560, 440, 975, 590] },
+    "arm_upper_F":   { "comp": 3,  "pivot": [1041, 88], "tip": [1189, 229] },
+    "arm_lower_F":   { "comp": 5,  "pivot": [122, 278], "tip": [265, 425] },
+    "arm_upper_B":   { "comp": 0,  "pivot": [218, 90],  "tip": [102, 230] },
+    "arm_lower_B":   { "comp": 7,  "pivot": [1262, 267], "tip": [1117, 421] },
+    "hand_B":        { "comp": 13, "pivot": [1265, 418], "tip": [1290, 515] },
+    "leg_upper_F":   { "comp": 11, "pivot": [995, 409], "tip": [1040, 654] },
+    "leg_lower_F":   { "comp": 17, "pivot": [1259, 630], "tip": [1275, 840], "sole": [1290, 985] },
+    "leg_upper_B":   { "comp": 6,  "pivot": [467, 357], "tip": [395, 650] },
+    "leg_lower_B":   { "comp": 14, "pivot": [143, 638], "tip": [125, 845], "sole": [115, 990], "flip": true },
+    "tool":          { "comp": 4,  "pivot": [1395, 760], "tip": [1400, 110] }
+  },
+  "anchors": {
+    "_doc": "Joints on other parts, in parts.webp pixels: shoulders on the torso, hips on the pelvis.",
+    "shoulder_F": [985, 112],
+    "shoulder_B": [540, 128],
+    "hip_F": [870, 560],
+    "hip_B": [660, 560]
+  },
+  "portrait": { "file": "portrait.webp", "size": 512, "focus": [0.62, 0.45] },
+  "face": { "file": "portrait.webp", "crop": [560, 160, 1040, 640], "size": 160 },
+  "expressions": {
+    "file": "expressions.webp", "grid": [3, 2], "size": 384,
+    "names": ["neutral", "shout", "hurt", "laugh", "point", "dizzy"]
+  }
+}

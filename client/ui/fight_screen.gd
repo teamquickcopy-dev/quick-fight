@@ -11,10 +11,11 @@ const FD := preload("res://engine/fighter_data.gd")
 const Fighter := preload("res://engine/fighter.gd")
 const MatchSim := preload("res://engine/match_sim.gd")
 const Cpu := preload("res://engine/cpu.gd")
-const BoxRig := preload("res://fighters/_graybox/box_rig.gd")
+const Rigs := preload("res://fighters/rigs.gd")
 const Effects := preload("res://fx/effects.gd")
 const Stage := preload("res://stages/graybox/stage.gd")
 const Rollback := preload("res://net/rollback.gd")
+const Art := preload("res://fighters/_cutout/art.gd")
 
 const TICK_USEC := 1000000 / R.TICKS_PER_SECOND
 const MAX_CATCHUP := 4
@@ -30,11 +31,17 @@ var fx := Effects.new()
 var stage := Stage.new()
 var font: Font
 var colors: Array = []
+var tints: Array = [Color.WHITE, Color.WHITE]
 
 var _acc := 0
 var _last := 0
 var ticks := 0
-var cam_x := 0.0
+var cam_x := 0.0                 # left edge of the view, in stage px (for parallax)
+var cam_center := 0.0            # stage px at the middle of the screen
+var zoom := 1.0
+var bg_layer: Node2D             # back wall / machines (screen space)
+var world_layer: Node2D          # floor, fighters, effects (stage space, zoomed)
+var slowmo := 1                  # Training: F5 runs the game at 1/4 speed
 var shake := 0.0
 var shake_offset := Vector2.ZERO
 
@@ -42,6 +49,7 @@ var menu_open := false
 var menu_items: Array = []
 var menu_index := 0
 var menu_title := ""
+var results_winner := -1          # shows the winner's / loser's expressions on the results menu
 
 var announce := ""
 var announce_sub := ""
@@ -82,6 +90,7 @@ func setup(config: Dictionary) -> void:
 	if cfg.p1.id == cfg.p2.id:
 		c2 = Color.from_hsv(fmod(c2.h + 0.5, 1.0), c2.s, c2.v * 0.9)  # mirror match: recolor P2
 	colors = [c1, c2]
+	tints = [Color.WHITE, Color(0.78, 0.86, 1.0) if cfg.p1.id == cfg.p2.id else Color.WHITE]
 	var seed := int(Time.get_unix_time_from_system())
 	if cfg.mode == "cpu":
 		cpu = Cpu.new(1, cfg.get("level", Cpu.Level.SENIOR), seed)
@@ -93,7 +102,18 @@ func setup(config: Dictionary) -> void:
 	_last = Time.get_ticks_usec()
 	_acc = 0
 	menu_open = false
-	cam_x = (R.STAGE_WIDTH / R.FP - 1280) / 2.0
+	cam_center = R.STAGE_WIDTH / R.FP / 2.0
+	zoom = 1.5
+	cam_x = cam_center - 640.0 / zoom
+	# Draw order by z_index: background, then the zoomed world, then this node (HUD, menus).
+	bg_layer = Node2D.new()
+	bg_layer.z_index = -2
+	bg_layer.draw.connect(func(): _draw_bg(bg_layer))
+	add_child(bg_layer)
+	world_layer = Node2D.new()
+	world_layer.z_index = -1
+	world_layer.draw.connect(func(): _draw_world(world_layer))
+	add_child(world_layer)
 
 
 func _process(_delta: float) -> void:
@@ -119,12 +139,14 @@ func _process(_delta: float) -> void:
 		else:
 			_open_menu("PAUSED", ["Resume", "Restart", "Character select", "Main menu"])
 	if (not menu_open or online_mode) and not online_dead:
-		_acc = mini(_acc + elapsed, TICK_USEC * MAX_CATCHUP)
-		while _acc >= TICK_USEC:
+		_acc = mini(_acc + elapsed, TICK_USEC * slowmo * MAX_CATCHUP)
+		while _acc >= TICK_USEC * slowmo:
 			_tick()
-			_acc -= TICK_USEC
+			_acc -= TICK_USEC * slowmo
 	_update_camera()
 	queue_redraw()
+	bg_layer.queue_redraw()
+	world_layer.queue_redraw()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -148,6 +170,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			dummy_mode = (dummy_mode + 1) % DUMMY_MODES.size()
 		KEY_F4:
 			_reset_training()
+		KEY_F5:
+			slowmo = 4 if slowmo == 1 else 1
 
 
 func _reset_training() -> void:
@@ -197,6 +221,7 @@ func _tick() -> void:
 		if cfg.mode == "online":
 			items = ["Rematch", "Change fighter", "New opponent", "Main menu"]
 		_open_menu("DRAW" if w == 2 else "%s WINS" % sim.fighters[w].data.display_name.to_upper(), items)
+		results_winner = w
 
 
 ## Rollback can replay frames: show each event (spark, announcement) once per frame it happened in.
@@ -330,10 +355,19 @@ func _announce(text: String, sub: String, frames: int) -> void:
 	announce_t = frames
 
 
+## Fighting-game camera: follows the midpoint and zooms in when the fighters are close
+## (up to 1.5x), out when they're apart, never showing past the stage edges.
 func _update_camera() -> void:
-	var center := (float(sim.fighters[0].x) + float(sim.fighters[1].x)) / 2.0 / R.FP
-	var target := clampf(center - 640.0, 0.0, R.STAGE_WIDTH / R.FP - 1280.0)
-	cam_x = lerpf(cam_x, target, 0.15)
+	var a: float = float(sim.fighters[0].x) / R.FP
+	var b: float = float(sim.fighters[1].x) / R.FP
+	var target_zoom := clampf(1280.0 / (absf(a - b) + 380.0), 1.0, 1.5)
+	zoom = lerpf(zoom, target_zoom, 0.06)
+	var half := 640.0 / zoom
+	var stage_w: float = R.STAGE_WIDTH / R.FP
+	cam_center = lerpf(cam_center, clampf((a + b) / 2.0, half, stage_w - half), 0.15)
+	cam_x = cam_center - half
+	world_layer.transform = Transform2D(0, Vector2(zoom, zoom), 0,
+			Vector2(640.0 - cam_center * zoom, GROUND_Y - GROUND_Y * zoom) + shake_offset)
 	if shake > 0.1:
 		shake_offset = Vector2(randf_range(-shake, shake), randf_range(-shake, shake) * 0.6)
 		shake *= 0.85
@@ -345,6 +379,7 @@ func _update_camera() -> void:
 # --- menu (pause and results) --------------------------------------------------------------------
 
 func _open_menu(title: String, items: Array) -> void:
+	results_winner = -1
 	menu_open = true
 	menu_title = title
 	menu_items = items
@@ -403,28 +438,36 @@ func _menu_rect(i: int) -> Rect2:
 
 # --- drawing -------------------------------------------------------------------------------------
 
-func _draw() -> void:
-	var off := Vector2(-cam_x, 0) + shake_offset
-	stage.draw(self, cam_x, ticks, shake_offset)
+## Background layer (screen space): back wall and machines; dimmed during a super flash.
+func _draw_bg(ci: CanvasItem) -> void:
+	stage.draw_back(ci, cam_x, ticks, shake_offset)
+
+
+## World layer (stage px, zoomed by the camera): floor, shadows, fighters, effects, hitboxes.
+func _draw_world(ci: CanvasItem) -> void:
+	stage.draw_floor(ci)
 	if fx.super_dim > 0:
-		draw_rect(Rect2(0, 0, 1280, 720), Color(0, 0, 0, 0.55))
-	# Shadows, then fighters (the attacker on top).
+		ci.draw_rect(Rect2(-2000, -2000, 6000, 4000), Color(0, 0, 0, 0.55))
 	for f in sim.fighters:
-		var s := _world(f.x, 0) + off
 		var lift := clampf(1.0 - float(f.y) / R.FP / 300.0, 0.4, 1.0)
-		draw_set_transform(s, 0, Vector2(1, 0.22))
-		draw_circle(Vector2.ZERO, 46 * lift, Color(0, 0, 0, 0.35 * lift))
-		draw_set_transform(Vector2.ZERO)
+		ci.draw_set_transform(_world(f.x, 0), 0, Vector2(1, 0.22))
+		ci.draw_circle(Vector2.ZERO, 46 * lift, Color(0, 0, 0, 0.35 * lift))
+	ci.draw_set_transform(Vector2.ZERO)
+	# The attacker is drawn on top.
 	var order := [0, 1]
 	if sim.fighters[0].state == Fighter.ATTACK and sim.fighters[1].state != Fighter.ATTACK:
 		order = [1, 0]
 	for i in order:
 		var f = sim.fighters[i]
-		BoxRig.draw(self, f, _world(f.x, f.y) + off, colors[i])
-	fx.draw(self, off, font)
-	stage.draw_front(self, cam_x, shake_offset)
+		Rigs.draw(ci, f, _world(f.x, f.y), colors[i], tints[i])
+	fx.draw(ci, Vector2.ZERO, font)
 	if show_boxes:
-		_draw_boxes(off)
+		_draw_boxes(ci)
+
+
+## Screen layer: foreground props, flashes, HUD, menus.
+func _draw() -> void:
+	stage.draw_front(self, cam_x, shake_offset)
 	if fx.white_flash > 0.0:
 		draw_rect(Rect2(0, 0, 1280, 720), Color(1, 1, 1, fx.white_flash * 0.7))
 	_draw_hud()
@@ -432,22 +475,21 @@ func _draw() -> void:
 		_draw_menu()
 
 
-func _rect(b: Array, off: Vector2) -> Rect2:
-	var p := _world(b[0], b[1] + b[3]) + off
-	return Rect2(p, Vector2(float(b[2]) / R.FP, float(b[3]) / R.FP))
+func _rect(b: Array) -> Rect2:
+	return Rect2(_world(b[0], b[1] + b[3]), Vector2(float(b[2]) / R.FP, float(b[3]) / R.FP))
 
 
-func _draw_boxes(off: Vector2) -> void:
+func _draw_boxes(ci: CanvasItem) -> void:
 	for f in sim.fighters:
-		draw_rect(_rect(f.push_box(), off), Color(1, 0.9, 0.2, 0.8), false, 1.0)
+		ci.draw_rect(_rect(f.push_box()), Color(1, 0.9, 0.2, 0.8), false, 1.0)
 		for hb in f.hurtboxes():
-			var r := _rect(hb, off)
-			draw_rect(r, Color(0.2, 0.9, 0.4, 0.18))
-			draw_rect(r, Color(0.2, 0.9, 0.4, 0.9), false, 2.0)
+			var r := _rect(hb)
+			ci.draw_rect(r, Color(0.2, 0.9, 0.4, 0.18))
+			ci.draw_rect(r, Color(0.2, 0.9, 0.4, 0.9), false, 2.0)
 		for ah in f.active_hits():
-			var r := _rect(ah[1], off)
-			draw_rect(r, Color(1, 0.2, 0.2, 0.3))
-			draw_rect(r, Color(1, 0.2, 0.2, 1), false, 2.0)
+			var r := _rect(ah[1])
+			ci.draw_rect(r, Color(1, 0.2, 0.2, 0.3))
+			ci.draw_rect(r, Color(1, 0.2, 0.2, 1), false, 2.0)
 
 
 func _text(pos: Vector2, s: String, size: int, color := Color.WHITE, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> void:
@@ -456,12 +498,21 @@ func _text(pos: Vector2, s: String, size: int, color := Color.WHITE, align := HO
 
 
 func _draw_hud() -> void:
-	var w := 500.0
+	var w := 470.0
 	for i in 2:
 		var f = sim.fighters[i]
 		var left := i == 0
-		var x0 := 40.0 if left else 1280.0 - 40.0 - w
+		var x0 := 96.0 if left else 1280.0 - 96.0 - w
 		var y0 := 28.0
+		# Face icon at the outer end of the bar.
+		var face_rect := Rect2(20.0 if left else 1280.0 - 84.0, 14.0, 64.0, 64.0)
+		draw_rect(face_rect.grow(3), colors[i].lightened(0.2))
+		var face := Art.ui(f.data, "face")
+		if face:
+			draw_texture_rect(face, face_rect, false)
+		else:
+			draw_rect(face_rect, colors[i].darkened(0.3))
+			_text(Vector2(face_rect.position.x, face_rect.end.y - 18), f.data.display_name.left(1), 36, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 64)
 		draw_rect(Rect2(x0 - 3, y0 - 3, w + 6, 30), Color(0, 0, 0, 0.7))
 		draw_rect(Rect2(x0, y0, w, 24), Color("#3a1414"))
 		var ratio: float = float(f.health) / f.data.health
@@ -537,7 +588,7 @@ func _draw_training() -> void:
 	draw_rect(Rect2(40, 100, 470, 140), Color(0, 0, 0, 0.55))
 	var lines := [
 		"TRAINING   F1 hitboxes: %s   F2 infinite meter: %s" % ["on" if show_boxes else "off", "on" if sim.infinite_meter else "off"],
-		"F3 dummy: %s   F4 reset positions   Esc pause" % DUMMY_MODES[dummy_mode],
+		"F3 dummy: %s   F4 reset   F5 slow-mo%s   Esc pause" % [DUMMY_MODES[dummy_mode], " ON" if slowmo > 1 else ""],
 		move_info,
 		frame_info,
 		"P1 state: %s   P2 state: %s" % [sim.fighters[0].state_name(), sim.fighters[1].state_name()],
@@ -548,6 +599,19 @@ func _draw_training() -> void:
 
 func _draw_menu() -> void:
 	draw_rect(Rect2(0, 0, 1280, 720), Color(0, 0, 0, 0.6))
+	if results_winner >= 0 and results_winner < 2:
+		var winner = sim.fighters[results_winner]
+		var loser = sim.fighters[1 - results_winner]
+		var win_art := Art.ui(winner.data, "expr_laugh")
+		var lose_art := Art.ui(loser.data, "expr_dizzy")
+		if win_art:
+			var r := Rect2(70, 200, 320, 320)
+			draw_rect(r.grow(5), Color("#fff2a8"))
+			draw_texture_rect(win_art, r, false)
+		if lose_art:
+			var r2 := Rect2(940, 300, 220, 220)
+			draw_rect(r2.grow(4), Color(1, 1, 1, 0.4))
+			draw_texture_rect(lose_art, r2, false, Color(0.75, 0.75, 0.75))
 	_text(Vector2(0, 250), menu_title, 56, Color("#fff2a8"), HORIZONTAL_ALIGNMENT_CENTER, 1280)
 	for i in menu_items.size():
 		var r := _menu_rect(i)

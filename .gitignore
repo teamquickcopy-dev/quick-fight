@@ -6,3 +6,6 @@ build/
 # OS / editors
 .DS_Store
 *.swp
+
+# Fighter art is exported as-is (importer="keep") and decoded at runtime
+!client/fighters/*/art/*.import
