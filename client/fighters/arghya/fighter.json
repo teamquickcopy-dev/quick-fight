@@ -3,7 +3,7 @@
   "name": "Arghya",
   "archetype": "All-rounder",
   "color": "#e8a33d",
-  "rig": "graybox",
+  "rig": "cutout",
   "health": 1000,
   "walk": { "forward": 360, "back": 280 },
   "dash": { "forward": { "frames": 16, "speed": 1100 }, "back": { "frames": 18, "speed": 950 } },

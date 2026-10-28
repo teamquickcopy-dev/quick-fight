@@ -18,26 +18,28 @@ const TORSO_W := 36.0
 
 # Angles in degrees. Limbs: 0 = straight down, positive = toward the side the fighter faces.
 # Torso lean: 0 = upright, positive = leaning forward. "drop" lowers the hips (px), "spin" rotates the body.
-const IDLE := {"lean": 6.0, "drop": 6.0, "spin": 0.0, "ft": 24.0, "fs": 2.0, "bt": -22.0, "bs": -14.0,
+# "to" = held tool (e.g. Arghya's squeegee-hammer) angle relative to the forearm: 100 rests it on the
+# shoulder, 0 extends it along the arm for a strike. Only cutout rigs with a tool use it.
+const IDLE := {"lean": 6.0, "drop": 6.0, "spin": 0.0, "to": 30.0, "ft": 24.0, "fs": 2.0, "bt": -22.0, "bs": -14.0,
 		"fu": 40.0, "fl": 140.0, "bu": 20.0, "bl": 120.0}
-const CROUCH := {"lean": 20.0, "drop": 44.0, "spin": 0.0, "ft": 80.0, "fs": -8.0, "bt": 30.0, "bs": -60.0,
+const CROUCH := {"lean": 20.0, "drop": 44.0, "spin": 0.0, "to": 30.0, "ft": 80.0, "fs": -8.0, "bt": 30.0, "bs": -60.0,
 		"fu": 45.0, "fl": 135.0, "bu": 25.0, "bl": 115.0}
-const AIR := {"lean": 4.0, "drop": 0.0, "spin": 0.0, "ft": 70.0, "fs": -20.0, "bt": 30.0, "bs": -50.0,
+const AIR := {"lean": 4.0, "drop": 0.0, "spin": 0.0, "to": 100.0, "ft": 70.0, "fs": -20.0, "bt": 30.0, "bs": -50.0,
 		"fu": 70.0, "fl": 150.0, "bu": 10.0, "bl": 100.0}
 const HIT := {"lean": -24.0, "fu": -25.0, "fl": 20.0, "bu": -45.0, "bl": -5.0, "ft": 18.0, "bt": -30.0}
 const BLOCK := {"lean": -4.0, "fu": 35.0, "fl": 172.0, "bu": 28.0, "bl": 165.0}
-const LYING := {"lean": 0.0, "drop": 80.0, "spin": -92.0, "ft": 10.0, "fs": 0.0, "bt": -10.0, "bs": -10.0,
+const LYING := {"lean": 0.0, "drop": 80.0, "spin": -92.0, "to": 60.0, "ft": 10.0, "fs": 0.0, "bt": -10.0, "bs": -10.0,
 		"fu": 30.0, "fl": 40.0, "bu": -20.0, "bl": -10.0}
 const WIN := {"fu": 165.0, "fl": 182.0, "bu": 30.0, "bl": 120.0, "lean": -4.0}
 const DASH := {"lean": 22.0, "ft": 50.0, "fs": 20.0, "bt": -40.0, "bs": -20.0}
 
 ## Attack key poses by kind: [wind-up, strike].
 const KINDS := {
-	"punch": [{"fu": -25.0, "fl": 70.0, "lean": -4.0}, {"fu": 90.0, "fl": 90.0, "lean": 16.0, "bu": -10.0, "bl": 60.0}],
+	"punch": [{"fu": -25.0, "fl": 70.0, "lean": -4.0, "to": 120.0}, {"fu": 90.0, "fl": 90.0, "lean": 16.0, "bu": -10.0, "bl": 60.0, "to": 0.0}],
 	"kick": [{"ft": 85.0, "fs": -15.0, "lean": -6.0}, {"ft": 88.0, "fs": 92.0, "lean": -20.0, "fu": 10.0, "fl": 60.0}],
 	"sweep": [{"ft": 40.0, "fs": -30.0, "drop": 52.0}, {"ft": 84.0, "fs": 90.0, "drop": 58.0, "lean": 30.0, "bt": 20.0, "bs": -70.0}],
-	"uppercut": [{"drop": 30.0, "fu": 15.0, "fl": 50.0, "lean": 18.0}, {"drop": -4.0, "fu": 165.0, "fl": 175.0, "lean": 6.0}],
-	"overhead": [{"fu": 190.0, "fl": 215.0, "bu": 175.0, "bl": 205.0, "lean": -14.0}, {"fu": 100.0, "fl": 105.0, "bu": 95.0, "bl": 100.0, "lean": 30.0}],
+	"uppercut": [{"drop": 30.0, "fu": 15.0, "fl": 50.0, "lean": 18.0, "to": 60.0}, {"drop": -4.0, "fu": 165.0, "fl": 175.0, "lean": 6.0, "to": 0.0}],
+	"overhead": [{"fu": 190.0, "fl": 215.0, "bu": 175.0, "bl": 205.0, "lean": -14.0, "to": 0.0}, {"fu": 100.0, "fl": 105.0, "bu": 95.0, "bl": 100.0, "lean": 30.0, "to": 0.0}],
 	"throw": [{"fu": 60.0, "fl": 80.0, "bu": 50.0, "bl": 80.0}, {"fu": 84.0, "fl": 86.0, "bu": 80.0, "bl": 84.0, "lean": 16.0}],
 	"air_punch": [{"fu": 30.0, "fl": 100.0}, {"fu": 70.0, "fl": 60.0, "lean": 15.0}],
 	"air_kick": [{"ft": 50.0, "fs": -30.0}, {"ft": 60.0, "fs": 50.0, "bt": 0.0, "bs": -30.0, "lean": -10.0}],

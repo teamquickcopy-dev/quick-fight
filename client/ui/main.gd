@@ -7,7 +7,8 @@ extends Node2D
 const FD := preload("res://engine/fighter_data.gd")
 const Cpu := preload("res://engine/cpu.gd")
 const FightScreen := preload("res://ui/fight_screen.gd")
-const BoxRig := preload("res://fighters/_graybox/box_rig.gd")
+const Rigs := preload("res://fighters/rigs.gd")
+const Art := preload("res://fighters/_cutout/art.gd")
 const Fighter := preload("res://engine/fighter.gd")
 const Online := preload("res://net/online.gd")
 const Rollback := preload("res://net/rollback.gd")
@@ -43,6 +44,8 @@ var peer_ready := {}
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
+	# Fighter art is drawn at about half its texture size: mipmaps keep it smooth (inherited by the fight).
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	for p in FD.discover():
 		var d: FD = FD.load_file(p)
 		if d.ok():
@@ -420,10 +423,10 @@ func _item_rect(i: int) -> Rect2:
 
 func _card_rect(i: int) -> Rect2:
 	var n := roster.size()
-	var w := 220.0
-	var gap := 30.0
+	var w := 240.0
+	var gap := 28.0
 	var x0 := 640.0 - (n * w + (n - 1) * gap) / 2.0
-	return Rect2(x0 + i * (w + gap), 180, w, 340)
+	return Rect2(x0 + i * (w + gap), 160, w, 380)
 
 
 func _text(pos: Vector2, s: String, size: int, color := Color.WHITE, align := HORIZONTAL_ALIGNMENT_CENTER, width := 1280.0) -> void:
@@ -480,6 +483,12 @@ func _draw_select() -> void:
 		var d: FD = roster[i]
 		var r := _card_rect(i)
 		draw_rect(r, Color(1, 1, 1, 0.06))
+		var portrait := Art.ui(d, "portrait")
+		if portrait:
+			draw_texture_rect_region(portrait, r, Art.portrait_region(d, portrait, r.size))
+		else:
+			Rigs.draw(self, preview[i], Vector2(r.get_center().x, r.end.y - 70), d.color)
+		draw_rect(Rect2(r.position.x, r.end.y - 72, r.size.x, 72), Color(0, 0, 0, 0.7))
 		var sides := []
 		for s in [0, 1]:
 			if cursor[s] == i and (mode == "versus" or s == 0 or picked[0]):
@@ -487,7 +496,6 @@ func _draw_select() -> void:
 		for s in sides:
 			var c := Color("#ff5050") if s == 0 else Color("#4a9cff")
 			draw_rect(r.grow(4 + s * 6), c, false, 4.0 if not picked[s] else 8.0)
-		BoxRig.draw(self, preview[i], Vector2(r.get_center().x, r.end.y - 70), d.color)
 		_text(Vector2(r.position.x, r.end.y - 34), d.display_name.to_upper(), 26, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 		_text(Vector2(r.position.x, r.end.y - 10), d.archetype, 18, Color(1, 1, 1, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var hint := "P1: A/D + J     P2: arrows + numpad 4" if mode == "versus" else "A/D to move, J to pick, U to go back"

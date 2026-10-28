@@ -1,0 +1,187 @@
+{
+ "id": "arghya",
+ "draw_scale": 0.5137,
+ "parts": {
+  "head": {
+   "texture": "head.webp",
+   "pivot": [
+    36.72,
+    71.26
+   ],
+   "tip": [
+    33.9,
+    3.3
+   ]
+  },
+  "torso": {
+   "texture": "torso.webp",
+   "pivot": [
+    79.5,
+    128.7
+   ],
+   "tip": [
+    82.8,
+    9.0
+   ]
+  },
+  "pelvis": {
+   "texture": "pelvis.webp",
+   "pivot": [
+    64.2,
+    7.8
+   ],
+   "tip": [
+    64.2,
+    -42.0
+   ]
+  },
+  "arm_upper_F": {
+   "texture": "arm_upper_F.webp",
+   "pivot": [
+    15.86,
+    17.84
+   ],
+   "tip": [
+    57.6,
+    57.6
+   ]
+  },
+  "arm_lower_F": {
+   "texture": "arm_lower_F.webp",
+   "pivot": [
+    19.37,
+    11.35
+   ],
+   "tip": [
+    59.7,
+    52.8
+   ]
+  },
+  "arm_upper_B": {
+   "texture": "arm_upper_B.webp",
+   "pivot": [
+    57.31,
+    18.42
+   ],
+   "tip": [
+    24.6,
+    57.9
+   ]
+  },
+  "arm_lower_B": {
+   "texture": "arm_lower_B.webp",
+   "pivot": [
+    50.19,
+    10.57
+   ],
+   "tip": [
+    9.3,
+    54.0
+   ]
+  },
+  "hand_B": {
+   "texture": "hand_B.webp",
+   "pivot": [
+    14.55,
+    8.65
+   ],
+   "tip": [
+    21.6,
+    36.0
+   ]
+  },
+  "leg_upper_F": {
+   "texture": "leg_upper_F.webp",
+   "pivot": [
+    26.01,
+    15.21
+   ],
+   "tip": [
+    38.7,
+    84.3
+   ]
+  },
+  "leg_lower_F": {
+   "texture": "leg_lower_F.webp",
+   "pivot": [
+    23.09,
+    13.68
+   ],
+   "tip": [
+    27.6,
+    72.9
+   ]
+  },
+  "leg_upper_B": {
+   "texture": "leg_upper_B.webp",
+   "pivot": [
+    49.1,
+    15.77
+   ],
+   "tip": [
+    28.8,
+    98.4
+   ]
+  },
+  "leg_lower_B": {
+   "texture": "leg_lower_B.webp",
+   "pivot": [
+    25.02,
+    12.43
+   ],
+   "tip": [
+    30.1,
+    70.8
+   ]
+  },
+  "tool": {
+   "texture": "tool.webp",
+   "pivot": [
+    35.49,
+    201.9
+   ],
+   "tip": [
+    36.9,
+    18.6
+   ]
+  }
+ },
+ "anchors": {
+  "shoulder_F": [
+   34.83,
+   -49.16
+  ],
+  "shoulder_B": [
+   -33.75,
+   -46.69
+  ],
+  "hip_F": [
+   16.03,
+   14.49
+  ],
+  "hip_B": [
+   -16.34,
+   14.49
+  ]
+ },
+ "lengths": {
+  "head": 34.94,
+  "torso": 61.51,
+  "pelvis": 25.58,
+  "arm_upper_F": 29.61,
+  "arm_lower_F": 29.71,
+  "arm_upper_B": 26.34,
+  "arm_lower_B": 30.64,
+  "hand_B": 14.51,
+  "leg_upper_F": 36.08,
+  "leg_lower_F": 30.51,
+  "leg_upper_B": 43.71,
+  "leg_lower_B": 30.1,
+  "tool": 94.16
+ },
+ "sole": 22.47,
+ "portrait_focus": [
+  0.62,
+  0.45
+ ]
+}

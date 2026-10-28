@@ -52,3 +52,20 @@ func test_multi_hit_repeat_expands() -> void:
 	var d = t.fighter("jitu")
 	var m: Dictionary = d.moves[d.ultra_move]
 	t.eq(m.hits.size(), 12, "Deadline Rush is a 12-hit flurry")
+
+
+func test_cutout_rigs_load() -> void:
+	# Fighters marked "cutout" must have built art that loads (tools/art/build_fighter.py).
+	var CutoutRig = load("res://fighters/_cutout/cutout_rig.gd")
+	t.check(CutoutRig != null and CutoutRig.can_instantiate(), "cutout rig script compiles")
+	if CutoutRig == null:
+		return
+	for p in t.FD.discover():
+		var d = t.FD.load_file(p)
+		if d.rig != "cutout":
+			continue
+		var rig = CutoutRig.for_fighter(d)
+		t.check(rig != null, "%s: cutout art loads" % d.id)
+		if rig != null:
+			for part in ["head", "torso", "pelvis", "arm_upper_F", "arm_lower_F", "leg_upper_F", "leg_lower_F"]:
+				t.check(rig.parts.has(part), "%s: has part %s" % [d.id, part])
