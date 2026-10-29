@@ -15,7 +15,7 @@ const Art := preload("res://fighters/_cutout/art.gd")
 
 const BACK_TINT := Color(0.72, 0.72, 0.78)
 const PLANT_RANGE := 26.0     # a posed ankle this close to its floor height gets planted
-const GRIP_GAP := 15.0        # back hand sits this far down the tool handle from the front fist
+const GRIP_GAP := 22.0        # back hand sits this far up the tool handle from the front fist
 
 static var _cache := {}
 
@@ -114,7 +114,7 @@ func draw(ci: CanvasItem, f, feet: Vector2, tint := Color.WHITE) -> void:
 	var b_elbow: Vector2
 	var b_wrist: Vector2
 	if gripping:
-		var target := fist - tool_dir * GRIP_GAP
+		var target := fist + tool_dir * GRIP_GAP
 		b_elbow = _ik(sh_b, target, lengths.arm_upper_B, lengths.arm_lower_B, false)
 		b_wrist = b_elbow + (target - b_elbow).normalized() * lengths.arm_lower_B
 	else:
@@ -135,10 +135,11 @@ func draw(ci: CanvasItem, f, feet: Vector2, tint := Color.WHITE) -> void:
 	if gripping:
 		# The back forearm crosses in front of the chest (behind the head) to hold the handle.
 		_part(ci, base, "arm_lower_B", b_elbow, b_fore, tint * Color(0.9, 0.9, 0.93))
-		_part(ci, base, "hand_B", b_wrist, b_fore, tint * Color(0.9, 0.9, 0.93))
 	_part(ci, base, "head", neck, torso_dir.rotated(deg_to_rad(p.lean * 0.4)), tint)
 	if parts.has("tool"):
 		_part(ci, base, "tool", fist, tool_dir, tint)
+	if gripping:
+		_part(ci, base, "hand_B", b_wrist, b_fore, tint * Color(0.9, 0.9, 0.93))   # wraps over the handle
 	_part(ci, base, "arm_lower_F", f_elbow, (fist - f_elbow).normalized(), tint)
 	_part(ci, base, "arm_upper_F", sh_f, (f_elbow - sh_f).normalized(), tint)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)

@@ -142,7 +142,7 @@ class Rig:
         tool_dir = ddir(p["fl"] + spin + p.get("to", 100.0))
         grip = "tool" in self.tex and p.get("grip", 0.0) >= 0.5
         if grip:
-            target = add(fist, tool_dir, -15.0)
+            target = add(fist, tool_dir, 22.0)
             b_el = ik(sh_b, target, L["arm_upper_B"], L["arm_lower_B"], False)
             b_wr = add(b_el, norm(sub(target, b_el)), L["arm_lower_B"])
         else:
@@ -160,9 +160,10 @@ class Rig:
         part("torso", waist, tdir)
         if grip:
             part("arm_lower_B", b_el, bf, 0.9)
-            part("hand_B", b_wr, bf, 0.9)
         part("head", neck, rot(tdir, math.radians(p["lean"] * 0.4)))
         part("tool", fist, tool_dir)
+        if grip:
+            part("hand_B", b_wr, bf, 0.9)
         part("arm_lower_F", f_el, norm(sub(fist, f_el)))
         part("arm_upper_F", sh_f, norm(sub(f_el, sh_f)))
         if bones:

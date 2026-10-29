@@ -22,10 +22,10 @@ const TORSO_W := 36.0
 # shoulder, 0 extends it along the arm for a strike. Only cutout rigs with a tool use it.
 # "grip" = 1 when the back hand also holds the tool (two-handed, as in the character art),
 # 0 when the back arm moves freely (hit reactions, knockdowns, victory).
-const IDLE := {"lean": 6.0, "drop": 6.0, "spin": 0.0, "to": 30.0, "grip": 1.0, "ft": 24.0, "fs": 2.0, "bt": -22.0, "bs": -14.0,
-		"fu": 40.0, "fl": 140.0, "bu": 20.0, "bl": 120.0}
-const CROUCH := {"lean": 20.0, "drop": 44.0, "spin": 0.0, "to": 30.0, "grip": 1.0, "ft": 80.0, "fs": -8.0, "bt": 30.0, "bs": -60.0,
-		"fu": 45.0, "fl": 135.0, "bu": 25.0, "bl": 115.0}
+const IDLE := {"lean": 6.0, "drop": 6.0, "spin": 0.0, "to": 60.0, "grip": 1.0, "ft": 24.0, "fs": 2.0, "bt": -22.0, "bs": -14.0,
+		"fu": -20.0, "fl": 90.0, "bu": 20.0, "bl": 120.0}
+const CROUCH := {"lean": 20.0, "drop": 44.0, "spin": 0.0, "to": 60.0, "grip": 1.0, "ft": 80.0, "fs": -8.0, "bt": 30.0, "bs": -60.0,
+		"fu": -15.0, "fl": 95.0, "bu": 25.0, "bl": 115.0}
 const AIR := {"lean": 4.0, "drop": 0.0, "spin": 0.0, "to": 100.0, "grip": 1.0, "ft": 70.0, "fs": -20.0, "bt": 30.0, "bs": -50.0,
 		"fu": 70.0, "fl": 150.0, "bu": 10.0, "bl": 100.0}
 const HIT := {"grip": 0.0, "lean": -24.0, "fu": -25.0, "fl": 20.0, "bu": -45.0, "bl": -5.0, "ft": 18.0, "bt": -30.0}
