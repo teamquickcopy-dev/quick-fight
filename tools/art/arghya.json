@@ -23,9 +23,9 @@
     "tool":          { "comp": 4,  "pivot": [1395, 760], "tip": [1400, 110] }
   },
   "anchors": {
-    "_doc": "Joints on other parts, in parts.webp pixels: shoulders on the torso, hips on the pelvis.",
+    "_doc": "Joints on other parts, in parts.webp pixels: shoulders on the torso, hips on the pelvis. The back shoulder sits toward the middle of the back: in a side-on fighting stance the far shoulder is almost behind the near one (the art is drawn front-on).",
     "shoulder_F": [878, 88],
-    "shoulder_B": [615, 92],
+    "shoulder_B": [720, 95],
     "hip_F": [870, 560],
     "hip_B": [660, 560]
   },
