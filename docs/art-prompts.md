@@ -1,16 +1,105 @@
-# ChatGPT prompts for Quick Fight pose sheets and stages
+# ChatGPT prompts for Quick Fight art
+
+Make the art in this order:
+1. **Step 1, main character designs.** For each character: master design, turnaround, expressions, portrait and tool. The master design becomes the reference for everything else.
+2. **Step 2, pose sheets.** 7 sheets per character, which become the moves in the game.
+3. **Step 3, stage backgrounds.**
+
+---
+
+# STEP 1: MAIN CHARACTER DESIGNS
+
+## How to do Step 1
+
+1. **Start with Arghya**, in a new ChatGPT chat. Attach a clear **photo of the real Arghya** (face visible, good light), and send the prompts below one at a time.
+2. **Lock in the master design (prompt A) before anything else.** Regenerate until you love it, because every other image copies it. Download it as `arghya_master.png`.
+3. **For prompts B–E, attach the master design** (not the photo) and send them in the same chat.
+4. **For the other three characters,** start a new chat each and attach **two images**: a photo of that person, plus **Arghya's master design as the style reference**. That keeps all four looking like they're from the same game.
+5. All four people have agreed to appear in the game (design doc). Keep it to these four. No other real people, brands or logos.
+
+## The STYLE block (included in every prompt below)
+
+> **Art style:** premium 2D fighting-game character art. Bold clean black comic-book outlines of even thickness, flat cel shading with one soft shadow tone, strong readable silhouette, slightly heroic proportions (about 7 heads tall), vivid cyan, magenta, yellow and black accents from the print-shop theme. Light from the left. No text, no labels, no logos or brand marks on clothing or shoes.
+
+---
+
+## ARGHYA: character design (Step 1)
+
+### A. Master design (the most important image)
+
+> Create an original 2D fighting-game character based on the attached photo of a real person. Keep his real face recognisable: same face shape, eyes, nose, beard and hairstyle.
+>
+> **Character:** Arghya, the all-rounder fighter of a print-shop fighting game. A South Asian man with curly black hair (short fade on the sides), a short beard, dark rectangular sunglasses, an open black-and-white geometric-pattern overshirt with rolled-up sleeves, a black t-shirt with cyan-magenta-yellow paint splashes, black cargo pants with paint splatter, tan work boots, black-and-yellow fingerless gloves and a silver chain necklace. He holds a giant squeegee-hammer: a long paint-splattered handle with a wide flat rectangular squeegee head dripping pink paint.
+>
+> **Image:** ONE full-body view of him in a confident fighting stance, three-quarter view facing RIGHT, holding the squeegee-hammer diagonally across his body with both hands. Whole body visible from head to boots, centred, on a plain flat light-gray background. Only one person.
+>
+> **Art style:** premium 2D fighting-game character art. Bold clean black comic-book outlines of even thickness, flat cel shading with one soft shadow tone, strong readable silhouette, slightly heroic proportions (about 7 heads tall), vivid cyan, magenta, yellow and black accents from the print-shop theme. Light from the left. No text, no labels, no logos or brand marks on clothing or shoes.
+
+### B. Turnaround
+
+> Same character as the attached master design: Arghya, identical face, hair, sunglasses, clothes, colours and squeegee-hammer.
+>
+> **Image:** a character turnaround sheet with 4 full-body views in one row, the same size, standing in a neutral pose with the hammer at his side: 1 front view, 2 three-quarter view facing right, 3 side view facing right, 4 back view. Feet on the same ground line, evenly spaced, not overlapping, plain flat light-gray background. Only this one character.
+>
+> **Art style:** premium 2D fighting-game character art. Bold clean black comic-book outlines of even thickness, flat cel shading with one soft shadow tone, strong readable silhouette, slightly heroic proportions (about 7 heads tall), vivid cyan, magenta, yellow and black accents from the print-shop theme. Light from the left. No text, no labels, no logos or brand marks on clothing or shoes.
+
+### C. Expressions (used on the results screen and in Story mode)
+
+> Same character as the attached master design: Arghya, identical face, hair, sunglasses and clothes.
+>
+> **Image:** an expression sheet in a 3 × 2 grid of equal square panels, head and shoulders in each, three-quarter view facing right, a small paint-splash in the background of each panel. Top row, left to right: 1 neutral and confident, 2 shouting a battle cry with a raised fist, 3 hurt, wincing, holding his cheek. Bottom row, left to right: 4 laughing in victory, 5 smirking and pointing forward, 6 dizzy and knocked out, eyes spinning, stars circling his head. Thin gaps between panels, no text.
+>
+> **Art style:** premium 2D fighting-game character art. Bold clean black comic-book outlines of even thickness, flat cel shading with one soft shadow tone, strong readable silhouette, slightly heroic proportions (about 7 heads tall), vivid cyan, magenta, yellow and black accents from the print-shop theme. Light from the left. No text, no labels, no logos or brand marks on clothing or shoes.
+
+### D. Portrait (character select screen)
+
+> Same character as the attached master design: Arghya, identical face, hair, sunglasses, clothes and squeegee-hammer.
+>
+> **Image:** a square character-select portrait, chest up, three-quarter view facing right, the squeegee-hammer resting on his shoulder, a confident look. Background: a dark backdrop with explosive cyan, magenta, yellow and white paint splashes and a rim light around him. Face in the upper-middle of the image. No text.
+>
+> **Art style:** premium 2D fighting-game character art. Bold clean black comic-book outlines of even thickness, flat cel shading with one soft shadow tone, strong readable silhouette, slightly heroic proportions (about 7 heads tall), vivid cyan, magenta, yellow and black accents from the print-shop theme. Light from the left. No text, no labels, no logos or brand marks on clothing or shoes.
+
+### E. Signature tool close-up
+
+> The giant squeegee-hammer from the attached master design, exactly the same design and colours, shown alone: full length, lying diagonally, on a plain flat light-gray background. A long paint-splattered handle with a taped grip, a wide flat rectangular squeegee head with metal brackets, dripping pink paint. Bold clean comic-book outlines, flat cel shading. No hands, no person, no text.
+
+---
+
+## JITU, TAMAL and BRAD: character designs (Step 1)
+
+Use the **same 5 prompts (A–E)** as Arghya, with these changes:
+- **In prompt A**, attach **two images**: a photo of the real person, and **Arghya's master design**. Start the prompt with: *"Use the second image only as the art-style reference: same drawing style, outlines, shading and proportions, but a completely different person and outfit."* Then replace the **Character** paragraph with the one below.
+- **In prompts B–E**, attach that character's new master design and replace "Arghya" with his name.
+- Replace the hammer with his tool: in A's **Image** line, in D (the portrait) and in E (the tool close-up).
+
+**Jitu, Character paragraph:**
+> **Character:** Jitu, the fast rushdown fighter of a print-shop fighting game. Keep his real face from the photo recognisable. He wears a paint-splatter bomber jacket, a white t-shirt, a black chest harness, cargo joggers and plain high-top sneakers with no logos. A long steel ruler is strapped to his back and a box cutter hangs on his hip. **Image line:** a fast, low boxer-style fighting stance, ruler in his front hand.
+
+**Tamal, Character paragraph:**
+> **Character:** Tamal, the long-range zoner fighter of a print-shop fighting game. Keep his real face from the photo recognisable. He wears a black hoodie, an ink-stained work apron, a bandolier of ink cartridges across his chest and plain high-top sneakers with no logos. He carries a folding colour swatch fan. **Image line:** a calm, ready stance, an ink cartridge in one hand and the swatch fan in the other.
+
+**Brad Ballard, Character paragraph:**
+> **Character:** Brad Ballard, the boss: a big, powerful grappler. Keep his real face from the photo recognisable. Bald with a grey beard, wearing a white dress shirt with rolled sleeves, a loose navy tie, suspenders, an ID lanyard and a gold watch. He carries a heavy office stapler. **Image line:** a wide, heavy wrestler's stance, stapler gripped in one big fist.
+
+**Tool close-ups (prompt E):** Jitu: the steel ruler and the box cutter side by side. Tamal: the folding swatch fan open, plus one ink cartridge. Brad: the heavy office stapler.
+
+**When Step 1 is done for a character:** the Step 2 descriptions below for Jitu and Tamal have a **[HAIR AND FACE FROM HIS IMAGE]** gap. Fill it with what his finished master design shows (e.g. "short black hair, thin moustache").
+
+---
+
+# STEP 2: POSE SHEETS
 
 ## How to use these
 
-1. **Open a new ChatGPT chat for each character.** Attach that character's **full-body image** in the first message and write: *"This is my character [NAME]. Remember him exactly for every image in this chat."*
-2. **Send one prompt per message, in order (Sheet 1 → Sheet 7).** Attach the full-body image again with every prompt.
+1. **Open a new ChatGPT chat for each character.** Attach that character's **master design** in the first message and write: *"This is my character [NAME]. Remember him exactly for every image in this chat."*
+2. **Send one prompt per message, in order (Sheet 1 → Sheet 7).** Attach the master design again with every prompt.
 3. **Check each sheet before moving on:**
    - It must be the same person, with the same face, hair, clothes and colours.
    - It must show exactly 8 poses, all facing right, with only ONE person in the image.
    - If anything is wrong, reply: *"Regenerate. Keep the character identical to the reference, only one person, 8 poses facing right."*
 4. **Download each finished sheet at full size.** Name it `<character>_sheet<number>.png` (e.g. `arghya_sheet1.png`) and send it to Claude.
 
-Every prompt has three parts: **character description + sheet rules + the 8 poses.** They are written out in full below, so you only need to copy and paste.
+Every prompt has three parts: **character description + sheet rules + the 8 poses.**
 
 ---
 
@@ -134,7 +223,7 @@ Each prompt = **BRAD DESCRIPTION + SHEET RULES + one of these pose lists:**
 
 ---
 
-## STAGE BACKGROUNDS (no character image attached)
+# STEP 3: STAGE BACKGROUNDS (no character image attached)
 
 ### The Print Floor
 
