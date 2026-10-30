@@ -20,6 +20,7 @@ const Art := preload("res://fighters/_cutout/art.gd")
 const TICK_USEC := 1000000 / R.TICKS_PER_SECOND
 const MAX_CATCHUP := 4
 const GROUND_Y := Stage.GROUND_Y
+const INKY_MOVES := ["squeegee_swing", "heat_press", "full_bleed"]   # hits that also splat ink
 const DUMMY_MODES := ["Stand", "Crouch", "Jump", "Block stand", "Block crouch", "Block all", "CPU", "Player 2"]
 
 ## mode: "cpu" | "versus" | "training" | "online"; p1/p2: FighterData; level: CPU level;
@@ -75,6 +76,7 @@ var fps := 0
 # Online
 var session: Rollback
 var online_dead := false
+var _prev_state := [-1, -1]        # for state-change sounds
 var _seen_events := {}           # dedupes events replayed by rollback: key -> frame
 ## Tests can supply player 1's input instead of the keyboard: () -> int mask.
 var local_input := Callable()
@@ -91,8 +93,7 @@ func setup(config: Dictionary) -> void:
 		c2 = Color.from_hsv(fmod(c2.h + 0.5, 1.0), c2.s, c2.v * 0.9)  # mirror match: recolor P2
 	colors = [c1, c2]
 	tints = [Color.WHITE, Color(0.78, 0.86, 1.0) if cfg.p1.id == cfg.p2.id else Color.WHITE]
-	# Same stage on both sides of an online match: picked from the two fighters, not a clock.
-	stage = Stage.new(Stage.STAGES.keys()[(cfg.p1.id + "/" + cfg.p2.id).hash() % Stage.STAGES.size()])
+	stage = Stage.new(Stage.pick_id(cfg.p1.id, cfg.p2.id))
 	var seed := int(Time.get_unix_time_from_system())
 	if cfg.mode == "cpu":
 		cpu = Cpu.new(1, cfg.get("level", Cpu.Level.SENIOR), seed)
@@ -209,6 +210,7 @@ func _tick() -> void:
 		for e in sim.events:
 			_on_event(e)
 	tick_us = Time.get_ticks_usec() - t0
+	_state_sounds()
 	fx.tick()
 	announce_t = maxi(announce_t - 1, 0)
 	for i in 2:
@@ -224,6 +226,22 @@ func _tick() -> void:
 			items = ["Rematch", "Change fighter", "New opponent", "Main menu"]
 		_open_menu("DRAW" if w == 2 else "%s WINS" % sim.fighters[w].data.display_name.to_upper(), items)
 		results_winner = w
+
+
+## Sounds for state changes the sim has no event for: jump, dash, launched into the air.
+func _state_sounds() -> void:
+	for i in 2:
+		var st: int = sim.fighters[i].state
+		if st != _prev_state[i]:
+			match st:
+				Fighter.AIR:
+					if _prev_state[i] == Fighter.JUMP_SQUAT:
+						Sfx.play("jump", -5.0, 0.08)
+				Fighter.DASH_F, Fighter.DASH_B:
+					Sfx.play("dash", -6.0)
+				Fighter.JUGGLE:
+					Sfx.play("launch", -4.0, 0.05)
+			_prev_state[i] = st
 
 
 ## Rollback can replay frames: show each event (spark, announcement) once per frame it happened in.
@@ -287,6 +305,11 @@ func _world(x: int, y: int) -> Vector2:
 func _on_event(e: Dictionary) -> void:
 	match e.t:
 		"hit":
+			Sfx.play("counter" if e.counter else ("hit_heavy" if e.heavy else "hit_light"))
+			if e.counter:
+				Sfx.play("hit_heavy", -3.0)
+			if e.move in INKY_MOVES:
+				Sfx.play("splat", -2.0)
 			var pos := _world(e.x, e.y)
 			fx.hit(pos, e.heavy, e.counter)
 			var p: int = e.p
@@ -299,6 +322,7 @@ func _on_event(e: Dictionary) -> void:
 			if cfg.mode == "training":
 				frame_info = "%s  dmg %d  %s" % [e.move, e.dmg, ("on hit %+d" % e.adv) if e.adv != 0 or e.move.begins_with("st_") else "knockdown/launch"]
 		"block":
+			Sfx.play("block", -4.0)
 			fx.block(_world(e.x, e.y))
 			if cfg.mode == "training":
 				frame_info = "blocked  on block %+d" % e.adv
@@ -308,13 +332,22 @@ func _on_event(e: Dictionary) -> void:
 		"shake":
 			shake = maxf(shake, e.amount)
 		"knockdown":
+			Sfx.play("knockdown")
 			var f = sim.fighters[e.p]
 			fx.dust(_world(f.x, 0), 8)
 			shake = maxf(shake, 4.0)
 		"land":
+			Sfx.play("land", -8.0)
 			var lf = sim.fighters[e.p]
 			fx.dust(_world(lf.x, 0), 3)
 		"move":
+			match e.category:
+				"light":
+					Sfx.play("whoosh_light", -6.0, 0.12)
+				"heavy", "special":
+					Sfx.play("whoosh_heavy", -3.0, 0.1)
+				"throw":
+					Sfx.play("grab", -4.0)
 			var mf = sim.fighters[e.p]
 			if e.p == 0:
 				# By name: online, events can arrive after a rollback moved the sim past this move.
@@ -323,17 +356,22 @@ func _on_event(e: Dictionary) -> void:
 			if e.category in ["super", "ultra"]:
 				fx.shockwave(_world(mf.x, 110 * R.FP))
 		"super_flash":
+			Sfx.play("super", 0.0, 0.0)
 			fx.super_flash(e.frames)
 		"grab":
-			pass
+			Sfx.play("grab")
 		"tech":
+			Sfx.play("block")
 			fx.label(_world(e.x, e.y), "THROW BREAK", Color("#8fd3ff"))
 		"round_start":
+			Sfx.play("round", -4.0, 0.0)
 			var final_round: bool = sim.wins[0] == R.ROUNDS_TO_WIN - 1 and sim.wins[1] == R.ROUNDS_TO_WIN - 1
 			_announce("FINAL ROUND" if final_round else "ROUND %d" % e.round, "", 80)
 		"fight":
+			Sfx.play("fight", -2.0, 0.0)
 			_announce("FIGHT!", "", 50)
 		"ko":
+			Sfx.play("ko", 0.0, 0.0)
 			fx.ko_flash()
 			shake = 12.0
 			_announce("K.O.", "PERFECT" if e.perfect else "", 120)
@@ -341,8 +379,11 @@ func _on_event(e: Dictionary) -> void:
 			_announce("TIME", "", 120)
 		"match_over":
 			if e.winner < 2:
+				Sfx.play("win", -2.0, 0.0)
 				_announce("%s WINS" % sim.fighters[e.winner].data.display_name.to_upper(), "Press Super (HP + HK) for the finisher!", 120)
 		"finisher":
+			Sfx.play("hit_heavy")
+			Sfx.play("splat", 0.0, 0.0, 0.7)
 			var loser = sim.fighters[1 - e.p]
 			for i in 4:
 				fx.ink(_world(loser.x, 100 * R.FP), 10)

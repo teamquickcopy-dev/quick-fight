@@ -8,6 +8,7 @@ const FD := preload("res://engine/fighter_data.gd")
 const Cpu := preload("res://engine/cpu.gd")
 const FightScreen := preload("res://ui/fight_screen.gd")
 const Rigs := preload("res://fighters/rigs.gd")
+const Stage := preload("res://stages/painted/stage.gd")
 const Art := preload("res://fighters/_cutout/art.gd")
 const Fighter := preload("res://engine/fighter.gd")
 const Online := preload("res://net/online.gd")
@@ -500,7 +501,8 @@ func _draw_select() -> void:
 		_text(Vector2(r.position.x, r.end.y - 10), d.archetype, 18, Color(1, 1, 1, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var hint := "P1: A/D + J     P2: arrows + numpad 4" if mode == "versus" else "A/D to move, J to pick, U to go back"
 	_text(Vector2(0, 600), hint, 20, Color(1, 1, 1, 0.6))
-	_text(Vector2(0, 640), "Stage: Gray Box", 20, Color(1, 1, 1, 0.6))
+	var stage_id := Stage.pick_id(roster[cursor[0]].id, roster[cursor[1]].id)
+	_text(Vector2(0, 640), "Stage: %s" % Stage.STAGES[stage_id], 20, Color(1, 1, 1, 0.6))
 
 
 func _draw_online() -> void:

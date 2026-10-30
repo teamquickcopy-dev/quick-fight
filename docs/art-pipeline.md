@@ -58,3 +58,9 @@ fallback for any state or move that has no picture yet.
 
 Stages: `art/source/stages/*.webp` (Step 3) are scaled to 1920x720 into `client/stages/painted/`;
 the painting pans behind the fighters (`stages/painted/stage.gd`).
+
+## Sound effects
+
+All sounds are synthesized by `tools/audio/make_sfx.py` (no recordings or samples) into
+`client/sfx/*.ogg`. Tweak a recipe and re-run. The fight screen plays them on sim events
+(`ui/fight_screen.gd` `_on_event`, `_state_sounds`) through the `Sfx` autoload (`ui/sfx.gd`).

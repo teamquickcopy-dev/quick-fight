@@ -86,21 +86,27 @@ func menu(action: String, p := 0) -> bool:
 		match action:
 			"accept":
 				if Input.is_action_just_pressed("p%d_lp" % i):
-					return true
+					return _menu_sound(action)
 			"back":
 				if Input.is_action_just_pressed("p%d_lk" % i):
-					return true
+					return _menu_sound(action)
 			_:
 				if Input.is_action_just_pressed("p%d_%s" % [i, action]):
-					return true
+					return _menu_sound(action)
 	if p != 2:
 		if action == "accept" and Input.is_action_just_pressed("menu_accept"):
-			return true
+			return _menu_sound(action)
 		if action == "back" and (Input.is_action_just_pressed("menu_back") or Input.is_action_just_pressed("pause")):
-			return true
+			return _menu_sound(action)
 	return false
 
 
 ## Human-readable binding for the controls screen.
 func describe(p: int, name: String) -> String:
 	return OS.get_keycode_string(KEYS[p][name])
+
+
+## Menu blips: accept goes "boop", everything else "blip".
+func _menu_sound(action: String) -> bool:
+	Sfx.play("menu_select" if action == "accept" else "menu_move", -12.0, 0.0)
+	return true
