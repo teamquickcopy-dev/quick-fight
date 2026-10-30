@@ -14,6 +14,7 @@ boot_splash/show_image=false
 [autoload]
 
 Controls="*res://ui/controls.gd"
+Sfx="*res://ui/sfx.gd"
 
 [display]
 
