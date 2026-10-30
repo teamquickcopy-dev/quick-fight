@@ -37,3 +37,24 @@ Each fighter's painted art becomes a **cutout (puppet) rig**: body parts pinned 
 
 - **Training F5:** slow motion (quarter speed), for reviewing animation.
 - **Training F1:** hitboxes, to check the art lines up with what actually hits.
+
+## Pose pictures (no rigging)
+
+Fighters are now drawn from one finished picture per pose, made with the prompts in
+`docs/art-prompts.md` (Step 2: 7 sheets x 8 poses). The cutout rig above is kept as the
+fallback for any state or move that has no picture yet.
+
+1. Save the sheets as `art/source/<id>/poses/sheet1.webp` ... `sheet7.webp`.
+2. Copy `tools/art/arghya_poses.json` to `tools/art/<id>_poses.json`. For each pose, draw a few
+   lines (sheet pixels) along the body, legs and tool: where poses overlap on a sheet, each pixel
+   goes to the pose whose lines are nearest. Set `"air": true` for poses off the ground, and
+   `scale` if a sheet draws the character bigger or smaller than Sheet 1.
+3. `python3 tools/art/build_poses.py tools/art/<id>_poses.json --preview` colours each pose's share
+   of the sheet (written next to `fighter.json`; don't commit it). Fix lines until the colours match.
+4. `python3 tools/art/build_poses.py tools/art/<id>_poses.json` writes `pose_*.webp` and `poses.json`.
+5. `map` in the config says which pose shows when: states (idle, walk, block, hit, ...) and each
+   move's wind-up / strike / recovery, timed by the frame data (`fighters/_poses/pose_rig.gd`).
+   `tests/run.sh` checks every named picture exists and that a whole CPU match always has one.
+
+Stages: `art/source/stages/*.webp` (Step 3) are scaled to 1920x720 into `client/stages/painted/`;
+the painting pans behind the fighters (`stages/painted/stage.gd`).

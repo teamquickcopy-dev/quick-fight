@@ -13,7 +13,7 @@ const MatchSim := preload("res://engine/match_sim.gd")
 const Cpu := preload("res://engine/cpu.gd")
 const Rigs := preload("res://fighters/rigs.gd")
 const Effects := preload("res://fx/effects.gd")
-const Stage := preload("res://stages/graybox/stage.gd")
+const Stage := preload("res://stages/painted/stage.gd")
 const Rollback := preload("res://net/rollback.gd")
 const Art := preload("res://fighters/_cutout/art.gd")
 
@@ -28,7 +28,7 @@ var cfg: Dictionary
 var sim: MatchSim
 var cpu: Cpu
 var fx := Effects.new()
-var stage := Stage.new()
+var stage := Stage.new("print_floor")
 var font: Font
 var colors: Array = []
 var tints: Array = [Color.WHITE, Color.WHITE]
@@ -91,6 +91,8 @@ func setup(config: Dictionary) -> void:
 		c2 = Color.from_hsv(fmod(c2.h + 0.5, 1.0), c2.s, c2.v * 0.9)  # mirror match: recolor P2
 	colors = [c1, c2]
 	tints = [Color.WHITE, Color(0.78, 0.86, 1.0) if cfg.p1.id == cfg.p2.id else Color.WHITE]
+	# Same stage on both sides of an online match: picked from the two fighters, not a clock.
+	stage = Stage.new(Stage.STAGES.keys()[(cfg.p1.id + "/" + cfg.p2.id).hash() % Stage.STAGES.size()])
 	var seed := int(Time.get_unix_time_from_system())
 	if cfg.mode == "cpu":
 		cpu = Cpu.new(1, cfg.get("level", Cpu.Level.SENIOR), seed)
