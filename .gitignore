@@ -10,3 +10,6 @@ build/
 # Fighter art is exported as-is (importer="keep") and decoded at runtime
 !client/fighters/*/art/*.import
 !client/stages/*/*.import
+
+# Python
+__pycache__/
