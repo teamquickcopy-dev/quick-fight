@@ -1,0 +1,513 @@
+{
+ "id": "arghya",
+ "draw_scale": 0.8,
+ "poses": {
+  "stance": {
+   "texture": "pose_stance.webp",
+   "anchor": [
+    85.4,
+    276.5
+   ]
+  },
+  "walk1": {
+   "texture": "pose_walk1.webp",
+   "anchor": [
+    69.4,
+    280.8
+   ]
+  },
+  "walk2": {
+   "texture": "pose_walk2.webp",
+   "anchor": [
+    68.3,
+    281.3
+   ]
+  },
+  "crouch": {
+   "texture": "pose_crouch.webp",
+   "anchor": [
+    75.8,
+    195.9
+   ]
+  },
+  "jump_up": {
+   "texture": "pose_jump_up.webp",
+   "anchor": [
+    90.8,
+    248.2
+   ]
+  },
+  "jump_down": {
+   "texture": "pose_jump_down.webp",
+   "anchor": [
+    49.6,
+    302.2
+   ]
+  },
+  "dash": {
+   "texture": "pose_dash.webp",
+   "anchor": [
+    81.7,
+    197.5
+   ]
+  },
+  "land": {
+   "texture": "pose_land.webp",
+   "anchor": [
+    47.0,
+    197.0
+   ]
+  },
+  "block": {
+   "texture": "pose_block.webp",
+   "anchor": [
+    67.8,
+    245.6
+   ]
+  },
+  "block_low": {
+   "texture": "pose_block_low.webp",
+   "anchor": [
+    124.4,
+    175.1
+   ]
+  },
+  "hit_high": {
+   "texture": "pose_hit_high.webp",
+   "anchor": [
+    88.6,
+    271.2
+   ]
+  },
+  "hit_low": {
+   "texture": "pose_hit_low.webp",
+   "anchor": [
+    56.6,
+    181.5
+   ]
+  },
+  "launched": {
+   "texture": "pose_launched.webp",
+   "anchor": [
+    160.2,
+    228.0
+   ]
+  },
+  "down": {
+   "texture": "pose_down.webp",
+   "anchor": [
+    102.0,
+    64.1
+   ]
+  },
+  "getup": {
+   "texture": "pose_getup.webp",
+   "anchor": [
+    63.0,
+    178.3
+   ]
+  },
+  "ko": {
+   "texture": "pose_ko.webp",
+   "anchor": [
+    91.8,
+    63.5
+   ]
+  },
+  "jab": {
+   "texture": "pose_jab.webp",
+   "anchor": [
+    69.4,
+    257.3
+   ]
+  },
+  "heavy_wind": {
+   "texture": "pose_heavy_wind.webp",
+   "anchor": [
+    79.5,
+    279.2
+   ]
+  },
+  "heavy": {
+   "texture": "pose_heavy.webp",
+   "anchor": [
+    90.2,
+    215.1
+   ]
+  },
+  "cr_jab": {
+   "texture": "pose_cr_jab.webp",
+   "anchor": [
+    52.9,
+    145.7
+   ]
+  },
+  "cr_wind": {
+   "texture": "pose_cr_wind.webp",
+   "anchor": [
+    94.0,
+    148.4
+   ]
+  },
+  "uppercut": {
+   "texture": "pose_uppercut.webp",
+   "anchor": [
+    50.7,
+    284.0
+   ]
+  },
+  "air_jab": {
+   "texture": "pose_air_jab.webp",
+   "anchor": [
+    77.9,
+    234.9
+   ]
+  },
+  "air_heavy": {
+   "texture": "pose_air_heavy.webp",
+   "anchor": [
+    65.7,
+    302.2
+   ]
+  },
+  "kick": {
+   "texture": "pose_kick.webp",
+   "anchor": [
+    74.7,
+    281.9
+   ]
+  },
+  "hk_wind": {
+   "texture": "pose_hk_wind.webp",
+   "anchor": [
+    80.1,
+    306.4
+   ]
+  },
+  "hk": {
+   "texture": "pose_hk.webp",
+   "anchor": [
+    61.9,
+    255.7
+   ]
+  },
+  "cr_kick": {
+   "texture": "pose_cr_kick.webp",
+   "anchor": [
+    81.7,
+    163.4
+   ]
+  },
+  "sweep_wind": {
+   "texture": "pose_sweep_wind.webp",
+   "anchor": [
+    48.0,
+    176.2
+   ]
+  },
+  "sweep": {
+   "texture": "pose_sweep.webp",
+   "anchor": [
+    68.9,
+    146.8
+   ]
+  },
+  "air_knee": {
+   "texture": "pose_air_knee.webp",
+   "anchor": [
+    44.8,
+    274.9
+   ]
+  },
+  "air_kick": {
+   "texture": "pose_air_kick.webp",
+   "anchor": [
+    53.4,
+    207.7
+   ]
+  },
+  "swing_wind": {
+   "texture": "pose_swing_wind.webp",
+   "anchor": [
+    74.7,
+    355.5
+   ]
+  },
+  "swing": {
+   "texture": "pose_swing.webp",
+   "anchor": [
+    105.7,
+    244.5
+   ]
+  },
+  "palm_wind": {
+   "texture": "pose_palm_wind.webp",
+   "anchor": [
+    71.5,
+    223.2
+   ]
+  },
+  "palm": {
+   "texture": "pose_palm.webp",
+   "anchor": [
+    39.0,
+    355.5
+   ]
+  },
+  "roll_start": {
+   "texture": "pose_roll_start.webp",
+   "anchor": [
+    87.6,
+    197.5
+   ]
+  },
+  "roll": {
+   "texture": "pose_roll.webp",
+   "anchor": [
+    58.2,
+    137.7
+   ]
+  },
+  "grab": {
+   "texture": "pose_grab.webp",
+   "anchor": [
+    86.5,
+    263.2
+   ]
+  },
+  "toss": {
+   "texture": "pose_toss.webp",
+   "anchor": [
+    71.0,
+    252.5
+   ]
+  },
+  "super_wind": {
+   "texture": "pose_super_wind.webp",
+   "anchor": [
+    52.4,
+    337.8
+   ]
+  },
+  "super_slam": {
+   "texture": "pose_super_slam.webp",
+   "anchor": [
+    74.0,
+    218.1
+   ]
+  },
+  "super_end": {
+   "texture": "pose_super_end.webp",
+   "anchor": [
+    57.7,
+    263.8
+   ]
+  },
+  "ultra_start": {
+   "texture": "pose_ultra_start.webp",
+   "anchor": [
+    74.5,
+    307.0
+   ]
+  },
+  "ultra_left": {
+   "texture": "pose_ultra_left.webp",
+   "anchor": [
+    62.5,
+    260.9
+   ]
+  },
+  "ultra_right": {
+   "texture": "pose_ultra_right.webp",
+   "anchor": [
+    78.8,
+    269.5
+   ]
+  },
+  "ultra_smash": {
+   "texture": "pose_ultra_smash.webp",
+   "anchor": [
+    90.8,
+    202.8
+   ]
+  },
+  "ultra_end": {
+   "texture": "pose_ultra_end.webp",
+   "anchor": [
+    70.6,
+    264.3
+   ]
+  },
+  "intro": {
+   "texture": "pose_intro.webp",
+   "anchor": [
+    65.8,
+    278.2
+   ]
+  },
+  "taunt": {
+   "texture": "pose_taunt.webp",
+   "anchor": [
+    47.1,
+    268.1
+   ]
+  },
+  "win": {
+   "texture": "pose_win.webp",
+   "anchor": [
+    125.4,
+    348.3
+   ]
+  },
+  "win2": {
+   "texture": "pose_win2.webp",
+   "anchor": [
+    62.0,
+    270.5
+   ]
+  },
+  "select": {
+   "texture": "pose_select.webp",
+   "anchor": [
+    49.0,
+    273.4
+   ]
+  },
+  "finish_wind": {
+   "texture": "pose_finish_wind.webp",
+   "anchor": [
+    84.1,
+    330.1
+   ]
+  },
+  "finish": {
+   "texture": "pose_finish.webp",
+   "anchor": [
+    109.1,
+    226.3
+   ]
+  },
+  "dizzy": {
+   "texture": "pose_dizzy.webp",
+   "anchor": [
+    71.6,
+    272.4
+   ]
+  }
+ },
+ "map": {
+  "_doc": "Which pose shows when (fighters/_poses/pose_rig.gd). A list cycles (walk) or is picked by hit count (hit). Moves: wind = startup, strike = active frames (a list gives one pose per hit), recover = recovery (default: strike, then back to stance/crouch). 'throwing' is the pose after a throw connects.",
+  "idle": "stance",
+  "walk": [
+   "walk1",
+   "stance",
+   "walk2",
+   "stance"
+  ],
+  "crouch": "crouch",
+  "jump_squat": "land",
+  "land": "land",
+  "jump_up": "jump_up",
+  "jump_down": "jump_down",
+  "dash_f": "dash",
+  "dash_b": "jump_down",
+  "block": "block",
+  "block_low": "block_low",
+  "hit": [
+   "hit_high",
+   "hit_low"
+  ],
+  "hit_crouch": "hit_low",
+  "juggle": "launched",
+  "thrown": "launched",
+  "throw_tech": "block",
+  "throwing": "toss",
+  "knockdown": "down",
+  "getup": "getup",
+  "ko": "ko",
+  "ko_air": "launched",
+  "win": "win",
+  "moves": {
+   "st_lp": {
+    "wind": "stance",
+    "strike": "jab"
+   },
+   "st_hp": {
+    "wind": "heavy_wind",
+    "strike": "heavy"
+   },
+   "st_lk": {
+    "wind": "hk_wind",
+    "strike": "kick"
+   },
+   "st_hk": {
+    "wind": "hk_wind",
+    "strike": "hk"
+   },
+   "cr_lp": {
+    "wind": "crouch",
+    "strike": "cr_jab"
+   },
+   "cr_hp": {
+    "wind": "cr_wind",
+    "strike": "uppercut"
+   },
+   "cr_lk": {
+    "wind": "crouch",
+    "strike": "cr_kick"
+   },
+   "cr_hk": {
+    "wind": "sweep_wind",
+    "strike": "sweep"
+   },
+   "j_lp": {
+    "wind": "jump_up",
+    "strike": "air_jab"
+   },
+   "j_hp": {
+    "wind": "air_jab",
+    "strike": "air_heavy"
+   },
+   "j_lk": {
+    "wind": "jump_up",
+    "strike": "air_knee"
+   },
+   "j_hk": {
+    "wind": "air_knee",
+    "strike": "air_kick"
+   },
+   "throw": {
+    "wind": "grab",
+    "strike": "grab"
+   },
+   "squeegee_swing": {
+    "wind": "swing_wind",
+    "strike": "swing"
+   },
+   "heat_press_palm": {
+    "wind": "palm_wind",
+    "strike": "palm"
+   },
+   "ink_roll": {
+    "wind": "roll_start",
+    "strike": "roll",
+    "spin": true
+   },
+   "heat_press": {
+    "wind": "super_wind",
+    "strike": "super_slam",
+    "recover": "super_end"
+   },
+   "full_bleed": {
+    "wind": "ultra_start",
+    "strike": [
+     "ultra_left",
+     "ultra_right",
+     "ultra_left",
+     "ultra_smash"
+    ],
+    "recover": "ultra_end"
+   }
+  }
+ }
+}
